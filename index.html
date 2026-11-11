@@ -295,6 +295,7 @@ input[type="range"] {
     transition: background .18s ease;
     flex-shrink: 0;
 }
+
 .setting-toggle::after {
     content: "";
     position: absolute;
@@ -306,37 +307,98 @@ input[type="range"] {
     background: white;
     transition: transform .18s ease;
 }
-.setting-toggle:checked { background: #397bd8; }
-.setting-toggle:checked::after { transform: translateX(18px); }
 
-.window-resize-handle {
+.setting-toggle:checked {
+    background: #397bd8;
+}
+
+.setting-toggle:checked::after {
+    transform: translateX(18px);
+}
+
+/* WINDOW RESIZE EDGES */
+
+.window-edge {
     position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 19px;
-    height: 19px;
-    cursor: nwse-resize;
-    z-index: 5;
+    z-index: 30;
     touch-action: none;
 }
-.window-resize-handle::after {
-    content: "";
-    position: absolute;
-    right: 5px;
-    bottom: 5px;
-    width: 8px;
-    height: 8px;
-    border-right: 2px solid #ffffff70;
-    border-bottom: 2px solid #ffffff70;
+
+.window-edge.left,
+.window-edge.right {
+    top: 8px;
+    bottom: 8px;
+    width: 6px;
+    cursor: ew-resize;
 }
-.window.maximized .window-resize-handle { display: none; }
+
+.window-edge.left {
+    left: 0;
+}
+
+.window-edge.right {
+    right: 0;
+}
+
+.window-edge.top,
+.window-edge.bottom {
+    left: 8px;
+    right: 8px;
+    height: 6px;
+    cursor: ns-resize;
+}
+
+.window-edge.top {
+    top: 0;
+}
+
+.window-edge.bottom {
+    bottom: 0;
+}
+
+.window-edge.top-left,
+.window-edge.top-right,
+.window-edge.bottom-left,
+.window-edge.bottom-right {
+    width: 13px;
+    height: 13px;
+}
+
+.window-edge.top-left {
+    top: 0;
+    left: 0;
+    cursor: nwse-resize;
+}
+
+.window-edge.top-right {
+    top: 0;
+    right: 0;
+    cursor: nesw-resize;
+}
+
+.window-edge.bottom-left {
+    bottom: 0;
+    left: 0;
+    cursor: nesw-resize;
+}
+
+.window-edge.bottom-right {
+    bottom: 0;
+    right: 0;
+    cursor: nwse-resize;
+}
+
+.window.maximized .window-edge {
+    display: none;
+}
+
+/* OTHER CONTENT */
 
 .wallpaper-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 15px;
 }
-
 
 .app-preview {
     width: 100%;
@@ -539,6 +601,7 @@ input[type="range"] {
         <img src="Resources/Icons/AppStore.png" alt="App Store">
         <span>App Store</span>
     </div>
+
     <div id="desktopApps"></div>
 
     <div class="taskbar">
@@ -635,6 +698,7 @@ input[type="range"] {
             <button class="close" onclick="closeWindow('moviumWindow')">×</button>
         </div>
     </div>
+
     <div class="window-content" style="display:block;background:#111">
         <iframe src="Resources/AppBase/Movium/index.html" title="Movium" style="width:100%;height:100%;border:0;background:#111"></iframe>
     </div>
@@ -645,8 +709,13 @@ const wallpaperElement = document.getElementById("wallpaper");
 const blurElement = document.getElementById("wallpaperBlur");
 
 let wallpaperFiles = [];
-let installedWallpapers = JSON.parse(localStorage.getItem("installedWallpapers") || "[]");
+
+let installedWallpapers = JSON.parse(
+    localStorage.getItem("installedWallpapers") || "[]"
+);
+
 let installedApps = [];
+
 try {
     installedApps = JSON.parse(localStorage.getItem("installedApps") || "[]");
     if (!Array.isArray(installedApps)) installedApps = [];
@@ -662,9 +731,15 @@ const availableApps = [{
 }];
 
 let desktopIconPositions = {};
+
 try {
-    desktopIconPositions = JSON.parse(localStorage.getItem("desktopIconPositions") || "{}");
-    if (!desktopIconPositions || typeof desktopIconPositions !== "object") desktopIconPositions = {};
+    desktopIconPositions = JSON.parse(
+        localStorage.getItem("desktopIconPositions") || "{}"
+    );
+
+    if (!desktopIconPositions || typeof desktopIconPositions !== "object") {
+        desktopIconPositions = {};
+    }
 } catch (error) {
     desktopIconPositions = {};
 }
@@ -673,7 +748,10 @@ const defaultWallpaper = "Windows_11.jpg";
 
 if (!installedWallpapers.includes(defaultWallpaper)) {
     installedWallpapers.push(defaultWallpaper);
-    localStorage.setItem("installedWallpapers", JSON.stringify(installedWallpapers));
+    localStorage.setItem(
+        "installedWallpapers",
+        JSON.stringify(installedWallpapers)
+    );
 }
 
 let currentWallpaper = localStorage.getItem("desktopWallpaper") || defaultWallpaper;
@@ -689,10 +767,17 @@ function updateClock() {
     const now = new Date();
 
     document.getElementById("clockTime").textContent =
-        now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+        now.toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit"
+        });
 
     document.getElementById("clockDate").textContent =
-        now.toLocaleDateString([], { month: "numeric", day: "numeric", year: "numeric" });
+        now.toLocaleDateString([], {
+            month: "numeric",
+            day: "numeric",
+            year: "numeric"
+        });
 }
 
 updateClock();
@@ -712,6 +797,7 @@ function applyColor() {
     wallpaperElement.innerHTML = "";
     wallpaperElement.style.backgroundImage = "none";
     wallpaperElement.style.backgroundColor = currentColor;
+
     document.getElementById("backgroundColor").value = currentColor;
 }
 
@@ -729,12 +815,14 @@ function applyWallpaper(filename) {
 
     if (isVideo(filename)) {
         const video = document.createElement("video");
+
         video.src = wallpaperPath(filename);
         video.autoplay = true;
         video.muted = true;
         video.loop = true;
         video.playsInline = true;
         video.preload = "auto";
+
         wallpaperElement.appendChild(video);
         video.play().catch(() => {});
     } else {
@@ -746,6 +834,7 @@ function applyWallpaper(filename) {
 function useSolidColor() {
     currentWallpaper = "__solid__";
     localStorage.setItem("desktopWallpaper", "__solid__");
+
     wallpaperElement.innerHTML = "";
     wallpaperElement.style.backgroundImage = "none";
     wallpaperElement.style.backgroundColor = currentColor;
@@ -769,10 +858,13 @@ document.getElementById("blurSlider").addEventListener("input", event => {
 });
 
 const snapAppsToggle = document.getElementById("snapAppsToggle");
+
 snapAppsToggle.checked = snapApps;
+
 snapAppsToggle.addEventListener("change", event => {
     snapApps = event.target.checked;
     localStorage.setItem("snapDesktopApps", String(snapApps));
+
     if (snapApps) applySnapToDesktopIcons();
 });
 
@@ -861,6 +953,7 @@ function renderInstalled() {
             button.disabled = true;
         } else {
             button.textContent = "Use wallpaper";
+
             button.onclick = () => {
                 applyWallpaper(filename);
                 renderInstalled();
@@ -878,11 +971,19 @@ function renderInstalled() {
 function snapIconPosition(left, top, icon) {
     const stepX = 110;
     const stepY = 105;
+
     const maxLeft = Math.max(0, window.innerWidth - icon.offsetWidth);
     const maxTop = Math.max(0, window.innerHeight - 48 - icon.offsetHeight);
+
     return {
-        left: Math.max(0, Math.min(maxLeft, 20 + Math.round((left - 20) / stepX) * stepX)),
-        top: Math.max(0, Math.min(maxTop, 20 + Math.round((top - 20) / stepY) * stepY))
+        left: Math.max(
+            0,
+            Math.min(maxLeft, 20 + Math.round((left - 20) / stepX) * stepX)
+        ),
+        top: Math.max(
+            0,
+            Math.min(maxTop, 20 + Math.round((top - 20) / stepY) * stepY)
+        )
     };
 }
 
@@ -891,30 +992,52 @@ function saveDesktopIconPosition(id, icon) {
         left: parseFloat(icon.style.left) || 20,
         top: parseFloat(icon.style.top) || 20
     };
-    localStorage.setItem("desktopIconPositions", JSON.stringify(desktopIconPositions));
+
+    localStorage.setItem(
+        "desktopIconPositions",
+        JSON.stringify(desktopIconPositions)
+    );
 }
 
 function applySnapToDesktopIcons() {
-    document.querySelectorAll(".desktop-icon[data-desktop-id], #desktopApps .desktop-icon").forEach(icon => {
+    document.querySelectorAll(
+        ".desktop-icon[data-desktop-id], #desktopApps .desktop-icon"
+    ).forEach(icon => {
         const id = icon.dataset.desktopId || icon.dataset.appId;
         if (!id) return;
-        const position = snapIconPosition(parseFloat(icon.style.left) || 20, parseFloat(icon.style.top) || 20, icon);
+
+        const position = snapIconPosition(
+            parseFloat(icon.style.left) || 20,
+            parseFloat(icon.style.top) || 20,
+            icon
+        );
+
         icon.style.left = position.left + "px";
         icon.style.top = position.top + "px";
+
         saveDesktopIconPosition(id, icon);
     });
 }
 
 function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
     icon.dataset.desktopId = id;
+
     const saved = desktopIconPositions[id];
-    let initialLeft = saved && Number.isFinite(saved.left) ? saved.left : defaultLeft;
-    let initialTop = saved && Number.isFinite(saved.top) ? saved.top : defaultTop;
+
+    let initialLeft = saved && Number.isFinite(saved.left)
+        ? saved.left
+        : defaultLeft;
+
+    let initialTop = saved && Number.isFinite(saved.top)
+        ? saved.top
+        : defaultTop;
+
     if (snapApps) {
         const snapped = snapIconPosition(initialLeft, initialTop, icon);
         initialLeft = snapped.left;
         initialTop = snapped.top;
     }
+
     icon.style.left = initialLeft + "px";
     icon.style.top = initialTop + "px";
 
@@ -926,42 +1049,68 @@ function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
 
     icon.addEventListener("pointerdown", event => {
         if (event.button !== 0) return;
+
         startX = event.clientX;
         startY = event.clientY;
         startLeft = parseFloat(icon.style.left) || 0;
         startTop = parseFloat(icon.style.top) || 0;
         moved = false;
+
         icon.setPointerCapture(event.pointerId);
     });
 
     icon.addEventListener("pointermove", event => {
         if (!icon.hasPointerCapture(event.pointerId)) return;
+
         const dx = event.clientX - startX;
         const dy = event.clientY - startY;
+
         if (!moved && Math.hypot(dx, dy) > 5) {
             moved = true;
             icon.classList.add("dragging");
         }
+
         if (!moved) return;
 
         const maxLeft = Math.max(0, window.innerWidth - icon.offsetWidth);
-        const maxTop = Math.max(0, window.innerHeight - 48 - icon.offsetHeight);
-        icon.style.left = Math.max(0, Math.min(maxLeft, startLeft + dx)) + "px";
-        icon.style.top = Math.max(0, Math.min(maxTop, startTop + dy)) + "px";
+        const maxTop = Math.max(
+            0,
+            window.innerHeight - 48 - icon.offsetHeight
+        );
+
+        icon.style.left =
+            Math.max(0, Math.min(maxLeft, startLeft + dx)) + "px";
+
+        icon.style.top =
+            Math.max(0, Math.min(maxTop, startTop + dy)) + "px";
     });
 
     icon.addEventListener("pointerup", event => {
-        if (icon.hasPointerCapture(event.pointerId)) icon.releasePointerCapture(event.pointerId);
+        if (icon.hasPointerCapture(event.pointerId)) {
+            icon.releasePointerCapture(event.pointerId);
+        }
+
         icon.classList.remove("dragging");
+
         if (moved) {
             if (snapApps) {
-                const snapped = snapIconPosition(parseFloat(icon.style.left) || 0, parseFloat(icon.style.top) || 0, icon);
+                const snapped = snapIconPosition(
+                    parseFloat(icon.style.left) || 0,
+                    parseFloat(icon.style.top) || 0,
+                    icon
+                );
+
                 icon.style.left = snapped.left + "px";
                 icon.style.top = snapped.top + "px";
             }
+
             saveDesktopIconPosition(id, icon);
+
             icon.dataset.justDragged = "true";
-            setTimeout(() => { icon.dataset.justDragged = "false"; }, 0);
+
+            setTimeout(() => {
+                icon.dataset.justDragged = "false";
+            }, 0);
         }
     });
 
@@ -970,6 +1119,7 @@ function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
             event.preventDefault();
             return;
         }
+
         if (onOpen) onOpen();
     });
 }
@@ -992,10 +1142,17 @@ function renderDesktopApps() {
 
         const label = document.createElement("span");
         label.textContent = app.name;
+
         icon.append(image, label);
         container.appendChild(icon);
 
-        makeDesktopIconDraggable(icon, app.id, 20, 125 + index * 100, () => openWindow("moviumWindow"));
+        makeDesktopIconDraggable(
+            icon,
+            app.id,
+            20,
+            125 + index * 100,
+            () => openWindow("moviumWindow")
+        );
     });
 }
 
@@ -1007,59 +1164,79 @@ function renderApps() {
 
     availableApps.forEach(app => {
         const installed = installedApps.includes(app.id);
+
         const card = document.createElement("div");
         card.className = "wallpaper-card";
 
         const preview = document.createElement("div");
         preview.className = "app-preview";
+
         const previewImage = document.createElement("img");
         previewImage.src = app.preview;
         previewImage.alt = app.name + " preview";
         previewImage.loading = "lazy";
+
         preview.appendChild(previewImage);
 
         const info = document.createElement("div");
         info.className = "wallpaper-info";
+
         const heading = document.createElement("div");
         heading.className = "app-heading";
+
         const appIcon = document.createElement("img");
         appIcon.className = "app-icon";
         appIcon.src = app.icon;
         appIcon.alt = "";
+
         const name = document.createElement("div");
         name.className = "wallpaper-name";
         name.textContent = app.name;
+
         heading.append(appIcon, name);
 
         const button = document.createElement("button");
         button.textContent = installed ? "Installed" : "Install";
         button.disabled = installed;
+
         const progress = document.createElement("div");
         progress.className = "progress";
+
         const fill = document.createElement("div");
         fill.className = "progress-fill";
+
         progress.appendChild(fill);
 
         button.onclick = () => {
             if (installedApps.includes(app.id)) return;
+
             button.disabled = true;
             button.textContent = "Installing...";
             progress.style.display = "block";
+
             const duration = 200 + Math.random() * 400;
             const start = performance.now();
 
             function animate(now) {
                 const amount = Math.min((now - start) / duration, 1);
+
                 fill.style.width = (amount * 100) + "%";
+
                 if (amount < 1) {
                     requestAnimationFrame(animate);
                 } else {
                     installedApps.push(app.id);
-                    localStorage.setItem("installedApps", JSON.stringify(installedApps));
+
+                    localStorage.setItem(
+                        "installedApps",
+                        JSON.stringify(installedApps)
+                    );
+
                     renderApps();
                     renderDesktopApps();
                 }
             }
+
             requestAnimationFrame(animate);
         };
 
@@ -1099,6 +1276,7 @@ function renderStore() {
 
         const fill = document.createElement("div");
         fill.className = "progress-fill";
+
         progress.appendChild(fill);
 
         button.onclick = () => {
@@ -1113,6 +1291,7 @@ function renderStore() {
 
             function animateProgress(now) {
                 const amount = Math.min((now - start) / duration, 1);
+
                 fill.style.width = (amount * 100) + "%";
 
                 if (amount < 1) {
@@ -1180,8 +1359,11 @@ async function loadWallpapers() {
 function showStoreTab(tab) {
     const apps = tab === "apps";
 
-    document.getElementById("appsPage").style.display = apps ? "block" : "none";
-    document.getElementById("wallpapersPage").style.display = apps ? "none" : "block";
+    document.getElementById("appsPage").style.display =
+        apps ? "block" : "none";
+
+    document.getElementById("wallpapersPage").style.display =
+        apps ? "none" : "block";
 
     document.getElementById("appsTab").classList.toggle("selected", apps);
     document.getElementById("wallpapersTab").classList.toggle("selected", !apps);
@@ -1197,19 +1379,42 @@ let windowOpenCount = 0;
 function openWindow(id) {
     const win = document.getElementById(id);
     if (!win) return;
+
     const wasOpen = win.classList.contains("active");
+
     win.classList.add("active");
 
     if (!wasOpen && !win.classList.contains("maximized")) {
         const offset = (windowOpenCount % 7) * 28;
         const rect = win.getBoundingClientRect();
-        const width = rect.width || Math.min(760, window.innerWidth - 30);
-        const height = rect.height || Math.min(520, window.innerHeight - 75);
+
+        const width = rect.width ||
+            Math.min(760, window.innerWidth - 30);
+
+        const height = rect.height ||
+            Math.min(520, window.innerHeight - 75);
+
         win.style.transform = "none";
-        win.style.left = Math.max(10, Math.min((window.innerWidth - width) / 2 + offset, window.innerWidth - width - 10)) + "px";
-        win.style.top = Math.max(10, Math.min((window.innerHeight - height) / 2 + offset, window.innerHeight - height - 58)) + "px";
+
+        win.style.left = Math.max(
+            10,
+            Math.min(
+                (window.innerWidth - width) / 2 + offset,
+                window.innerWidth - width - 10
+            )
+        ) + "px";
+
+        win.style.top = Math.max(
+            10,
+            Math.min(
+                (window.innerHeight - height) / 2 + offset,
+                window.innerHeight - height - 58
+            )
+        ) + "px";
+
         windowOpenCount++;
     }
+
     win.style.zIndex = ++highestWindow;
 }
 
@@ -1223,6 +1428,7 @@ function minimizeWindow(id) {
 
 function maximizeWindow(id) {
     const win = document.getElementById(id);
+
     win.classList.toggle("maximized");
     win.style.zIndex = ++highestWindow;
 }
@@ -1230,44 +1436,129 @@ function maximizeWindow(id) {
 /* WINDOW RESIZING AND DRAGGING */
 
 document.querySelectorAll(".window").forEach(win => {
-    const resizeHandle = document.createElement("div");
-    resizeHandle.className = "window-resize-handle";
-    resizeHandle.title = "Drag to resize";
-    win.appendChild(resizeHandle);
 
-    let resizing = false;
-    let resizeStartX = 0;
-    let resizeStartY = 0;
-    let resizeStartWidth = 0;
-    let resizeStartHeight = 0;
+    const edges = [
+        "top",
+        "bottom",
+        "left",
+        "right",
+        "top-left",
+        "top-right",
+        "bottom-left",
+        "bottom-right"
+    ];
 
-    resizeHandle.addEventListener("pointerdown", event => {
-        if (win.classList.contains("maximized") || !win.classList.contains("active")) return;
-        event.preventDefault();
-        event.stopPropagation();
-        resizing = true;
-        const rect = win.getBoundingClientRect();
-        resizeStartX = event.clientX;
-        resizeStartY = event.clientY;
-        resizeStartWidth = rect.width;
-        resizeStartHeight = rect.height;
-        win.style.zIndex = ++highestWindow;
-        resizeHandle.setPointerCapture(event.pointerId);
+    edges.forEach(edge => {
+        const handle = document.createElement("div");
+
+        handle.className = "window-edge " + edge;
+        win.appendChild(handle);
+
+        let resizing = false;
+
+        let startX = 0;
+        let startY = 0;
+
+        let startLeft = 0;
+        let startTop = 0;
+
+        let startWidth = 0;
+        let startHeight = 0;
+
+        handle.addEventListener("pointerdown", event => {
+            if (
+                win.classList.contains("maximized") ||
+                !win.classList.contains("active") ||
+                event.button !== 0
+            ) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            resizing = true;
+
+            const rect = win.getBoundingClientRect();
+
+            startX = event.clientX;
+            startY = event.clientY;
+
+            startLeft = rect.left;
+            startTop = rect.top;
+
+            startWidth = rect.width;
+            startHeight = rect.height;
+
+            win.style.transform = "none";
+            win.style.left = startLeft + "px";
+            win.style.top = startTop + "px";
+            win.style.zIndex = ++highestWindow;
+
+            handle.setPointerCapture(event.pointerId);
+        });
+
+        handle.addEventListener("pointermove", event => {
+            if (!resizing) return;
+
+            const dx = event.clientX - startX;
+            const dy = event.clientY - startY;
+
+            const minWidth = 360;
+            const minHeight = 240;
+
+            let left = startLeft;
+            let top = startTop;
+
+            let right = startLeft + startWidth;
+            let bottom = startTop + startHeight;
+
+            if (edge.includes("left")) {
+                left = startLeft + dx;
+            }
+
+            if (edge.includes("right")) {
+                right = startLeft + startWidth + dx;
+            }
+
+            if (edge.includes("top")) {
+                top = startTop + dy;
+            }
+
+            if (edge.includes("bottom")) {
+                bottom = startTop + startHeight + dy;
+            }
+
+            left = Math.max(0, Math.min(left, window.innerWidth - minWidth));
+            top = Math.max(0, Math.min(top, window.innerHeight - 48 - minHeight));
+
+            right = Math.max(
+                left + minWidth,
+                Math.min(right, window.innerWidth)
+            );
+
+            bottom = Math.max(
+                top + minHeight,
+                Math.min(bottom, window.innerHeight - 48)
+            );
+
+            win.style.left = left + "px";
+            win.style.top = top + "px";
+            win.style.width = (right - left) + "px";
+            win.style.height = (bottom - top) + "px";
+        });
+
+        const stopResize = () => {
+            resizing = false;
+        };
+
+        handle.addEventListener("pointerup", stopResize);
+        handle.addEventListener("pointercancel", stopResize);
+        handle.addEventListener("lostpointercapture", stopResize);
     });
 
-    resizeHandle.addEventListener("pointermove", event => {
-        if (!resizing) return;
-        const maxWidth = Math.max(360, window.innerWidth - win.offsetLeft - 10);
-        const maxHeight = Math.max(240, window.innerHeight - win.offsetTop - 58);
-        win.style.width = Math.max(360, Math.min(maxWidth, resizeStartWidth + event.clientX - resizeStartX)) + "px";
-        win.style.height = Math.max(240, Math.min(maxHeight, resizeStartHeight + event.clientY - resizeStartY)) + "px";
-    });
-
-    const stopResize = () => { resizing = false; };
-    resizeHandle.addEventListener("pointerup", stopResize);
-    resizeHandle.addEventListener("pointercancel", stopResize);
+    /* WINDOW DRAGGING */
 
     const titlebar = win.querySelector(".titlebar");
+
     let dragging = false;
     let offsetX = 0;
     let offsetY = 0;
@@ -1275,11 +1566,14 @@ document.querySelectorAll(".window").forEach(win => {
     titlebar.addEventListener("pointerdown", event => {
         if (event.target.closest(".window-controls")) return;
         if (win.classList.contains("maximized")) return;
+        if (event.button !== 0) return;
 
         dragging = true;
+
         win.style.zIndex = ++highestWindow;
 
         const rect = win.getBoundingClientRect();
+
         offsetX = event.clientX - rect.left;
         offsetY = event.clientY - rect.top;
 
@@ -1296,8 +1590,15 @@ document.querySelectorAll(".window").forEach(win => {
         let x = event.clientX - offsetX;
         let y = event.clientY - offsetY;
 
-        x = Math.max(0, Math.min(x, window.innerWidth - win.offsetWidth));
-        y = Math.max(0, Math.min(y, window.innerHeight - 80));
+        x = Math.max(
+            0,
+            Math.min(x, window.innerWidth - win.offsetWidth)
+        );
+
+        y = Math.max(
+            0,
+            Math.min(y, window.innerHeight - 80)
+        );
 
         win.style.left = x + "px";
         win.style.top = y + "px";
@@ -1315,7 +1616,15 @@ document.querySelectorAll(".window").forEach(win => {
 /* INITIALIZE */
 
 const appStoreIcon = document.getElementById("appStoreDesktopIcon");
-makeDesktopIconDraggable(appStoreIcon, "app-store", 20, 20, () => openWindow("storeWindow"));
+
+makeDesktopIconDraggable(
+    appStoreIcon,
+    "app-store",
+    20,
+    20,
+    () => openWindow("storeWindow")
+);
+
 renderApps();
 renderDesktopApps();
 applyBlur();
@@ -1331,6 +1640,7 @@ if (currentWallpaper === "__solid__") {
 }
 
 loadWallpapers();
+
 </script>
 
 </body>

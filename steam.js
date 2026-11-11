@@ -1,9 +1,21 @@
+/*
+ * Beacon Steam integration
+ * Add ONE line to index.html, directly above the big <script> block (the one that starts with
+ * "const wallpaperElement"):
+ *
+ *     <script src="steam.js"></script>
+ *
+ * It adds: a Steam window (shows steam.html), a Steam icon on the desktop, and the
+ * "Steam shortcut" icons that appear after someone clicks Play with the checkbox ticked.
+ */
 (function () {
     "use strict";
 
     const SHORTCUT_KEY = "beacon_steam_shortcuts";
     const STEAM_ICON = "Resources/AppBase/Steam/Steam.png";
     const STEAM_PREVIEW = "Resources/AppBase/Steam/Preview.png";
+
+    /* ---------- window + styles (injected right away so index.html wires up drag/resize/maximize) ---------- */
 
     const style = document.createElement("style");
     style.textContent = `
@@ -28,6 +40,8 @@
                 style="width:100%;height:100%;border:0;background:#1b2838"></iframe>
     </div>
 </div>`);
+
+    /* ---------- desktop icons (need index.html's functions, so wait until the page has loaded) ---------- */
 
     function loadShortcuts() {
         try {
@@ -94,26 +108,36 @@
         const desktop = document.querySelector(".desktop");
         if (!desktop) return;
 
-        // Register Steam as an installable app in the App Store.
-        // Once installed, index.html's own code puts the icon on the desktop.
-        if (!availableApps.some(a => a.id === "steam")) {
-            availableApps.push({
-                id: "steam",
-                name: "Steam",
-                icon: STEAM_ICON,
-                preview: STEAM_PREVIEW,
-                windowId: "steamWindow"
-            });
-            renderApps();
-            renderDesktopApps();
+        // Backup only: if you did NOT add Steam to availableApps in index.html, register it here.
+        // (If it is already in index.html's list, this does nothing.)
+        try {
+            if (typeof availableApps !== "undefined" && !availableApps.some(a => a.id === "steam")) {
+                availableApps.push({
+                    id: "steam",
+                    name: "Steam",
+                    icon: STEAM_ICON,
+                    preview: STEAM_PREVIEW,
+                    windowId: "steamWindow"
+                });
+                renderApps();
+                renderDesktopApps();
+            }
+        } catch (e) {
+            console.error("Steam: could not register in the App Store", e);
         }
 
-        const box = document.createElement("div");
-        box.id = "steamShortcuts";
-        desktop.insertBefore(box, document.getElementById("desktopApps"));
-        renderShortcuts();
+        // container for game shortcuts
+        try {
+            const box = document.createElement("div");
+            box.id = "steamShortcuts";
+            desktop.insertBefore(box, document.getElementById("desktopApps"));
+            renderShortcuts();
+        } catch (e) {
+            console.error("Steam: could not set up desktop shortcuts", e);
+        }
     }
 
+    // steam.html tells us when a shortcut should appear
     window.addEventListener("message", e => {
         if (e.origin !== location.origin) return;
         if (e.data && e.data.type === "beacon-steam-shortcut") renderShortcuts();

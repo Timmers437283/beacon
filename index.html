@@ -69,6 +69,23 @@ body {
     border: 1px solid transparent;
     border-radius: 5px;
     cursor: pointer;
+    touch-action: none;
+}
+
+.desktop-icon.dragging {
+    z-index: 10;
+    background: #ffffff20;
+    border-color: #ffffff30;
+}
+
+#desktopApps {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+#desktopApps .desktop-icon {
+    pointer-events: auto;
 }
 
 .desktop-icon:hover {
@@ -292,20 +309,19 @@ input[type="range"] {
     display: flex;
     align-items: center;
     gap: 10px;
-    min-width: 0;
     margin-bottom: 10px;
+    min-width: 0;
 }
 
 .app-icon {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     object-fit: contain;
     flex-shrink: 0;
 }
 
 .app-heading .wallpaper-name {
     margin: 0;
-    font-size: 13px;
 }
 
 .wallpaper-card {
@@ -472,10 +488,11 @@ input[type="range"] {
 
 <div class="desktop">
 
-    <div class="desktop-icon" onclick="openWindow('storeWindow')">
+    <div class="desktop-icon" id="appStoreDesktopIcon" data-desktop-id="app-store">
         <img src="Resources/Icons/AppStore.png" alt="App Store">
         <span>App Store</span>
     </div>
+    <div id="desktopApps"></div>
 
     <div class="taskbar">
         <button class="taskbar-button" onclick="openWindow('settingsWindow')" title="Settings">⚙</button>
@@ -554,22 +571,48 @@ input[type="range"] {
     </div>
 </div>
 
+<div class="window" id="moviumWindow">
+    <div class="titlebar">
+        <span class="window-title">Movium</span>
+        <div class="window-controls">
+            <button onclick="minimizeWindow('moviumWindow')">−</button>
+            <button onclick="maximizeWindow('moviumWindow')">□</button>
+            <button class="close" onclick="closeWindow('moviumWindow')">×</button>
+        </div>
+    </div>
+    <div class="window-content" style="display:block;background:#111">
+        <iframe src="Resources/AppBase/Movium/index.html" title="Movium" style="width:100%;height:100%;border:0;background:#111"></iframe>
+    </div>
+</div>
+
 <script>
 const wallpaperElement = document.getElementById("wallpaper");
 const blurElement = document.getElementById("wallpaperBlur");
 
 let wallpaperFiles = [];
-let installedApps = JSON.parse(localStorage.getItem("installedApps") || "[]");
-
-const availableApps = [
-    {
-        id: "movium",
-        name: "Movium",
-        icon: "Resources/Icons/Movium.png",
-        preview: "Resources/AppBase/Movium/Preview.png"
-    }
-];
 let installedWallpapers = JSON.parse(localStorage.getItem("installedWallpapers") || "[]");
+let installedApps = [];
+try {
+    installedApps = JSON.parse(localStorage.getItem("installedApps") || "[]");
+    if (!Array.isArray(installedApps)) installedApps = [];
+} catch (error) {
+    installedApps = [];
+}
+
+const availableApps = [{
+    id: "movium",
+    name: "Movium",
+    icon: "Resources/Icons/Movium.png",
+    preview: "Resources/AppBase/Movium/Preview.png"
+}];
+
+let desktopIconPositions = {};
+try {
+    desktopIconPositions = JSON.parse(localStorage.getItem("desktopIconPositions") || "{}");
+    if (!desktopIconPositions || typeof desktopIconPositions !== "object") desktopIconPositions = {};
+} catch (error) {
+    desktopIconPositions = {};
+}
 
 const defaultWallpaper = "Windows_11.jpg";
 
@@ -766,6 +809,96 @@ function renderInstalled() {
     });
 }
 
+/* DESKTOP ICONS */
+
+function saveDesktopIconPosition(id, icon) {
+    desktopIconPositions[id] = {
+        left: parseFloat(icon.style.left) || 20,
+        top: parseFloat(icon.style.top) || 20
+    };
+    localStorage.setItem("desktopIconPositions", JSON.stringify(desktopIconPositions));
+}
+
+function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
+    const saved = desktopIconPositions[id];
+    icon.style.left = (saved && Number.isFinite(saved.left) ? saved.left : defaultLeft) + "px";
+    icon.style.top = (saved && Number.isFinite(saved.top) ? saved.top : defaultTop) + "px";
+
+    let startX = 0;
+    let startY = 0;
+    let startLeft = 0;
+    let startTop = 0;
+    let moved = false;
+
+    icon.addEventListener("pointerdown", event => {
+        if (event.button !== 0) return;
+        startX = event.clientX;
+        startY = event.clientY;
+        startLeft = parseFloat(icon.style.left) || 0;
+        startTop = parseFloat(icon.style.top) || 0;
+        moved = false;
+        icon.setPointerCapture(event.pointerId);
+    });
+
+    icon.addEventListener("pointermove", event => {
+        if (!icon.hasPointerCapture(event.pointerId)) return;
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+        if (!moved && Math.hypot(dx, dy) > 5) {
+            moved = true;
+            icon.classList.add("dragging");
+        }
+        if (!moved) return;
+
+        const maxLeft = Math.max(0, window.innerWidth - icon.offsetWidth);
+        const maxTop = Math.max(0, window.innerHeight - 48 - icon.offsetHeight);
+        icon.style.left = Math.max(0, Math.min(maxLeft, startLeft + dx)) + "px";
+        icon.style.top = Math.max(0, Math.min(maxTop, startTop + dy)) + "px";
+    });
+
+    icon.addEventListener("pointerup", event => {
+        if (icon.hasPointerCapture(event.pointerId)) icon.releasePointerCapture(event.pointerId);
+        icon.classList.remove("dragging");
+        if (moved) {
+            saveDesktopIconPosition(id, icon);
+            icon.dataset.justDragged = "true";
+            setTimeout(() => { icon.dataset.justDragged = "false"; }, 0);
+        }
+    });
+
+    icon.addEventListener("click", event => {
+        if (icon.dataset.justDragged === "true") {
+            event.preventDefault();
+            return;
+        }
+        if (onOpen) onOpen();
+    });
+}
+
+function renderDesktopApps() {
+    const container = document.getElementById("desktopApps");
+    container.innerHTML = "";
+
+    availableApps.forEach((app, index) => {
+        if (!installedApps.includes(app.id)) return;
+
+        const icon = document.createElement("div");
+        icon.className = "desktop-icon";
+        icon.title = "Double-click to open " + app.name;
+
+        const image = document.createElement("img");
+        image.src = app.icon;
+        image.alt = app.name;
+
+        const label = document.createElement("span");
+        label.textContent = app.name;
+        icon.append(image, label);
+        container.appendChild(icon);
+
+        makeDesktopIconDraggable(icon, app.id, 20, 125 + index * 100, () => openWindow("moviumWindow"));
+    });
+}
+
 /* APP STORE */
 
 function renderApps() {
@@ -774,13 +907,11 @@ function renderApps() {
 
     availableApps.forEach(app => {
         const installed = installedApps.includes(app.id);
-
         const card = document.createElement("div");
         card.className = "wallpaper-card";
 
         const preview = document.createElement("div");
         preview.className = "app-preview";
-
         const previewImage = document.createElement("img");
         previewImage.src = app.preview;
         previewImage.alt = app.name + " preview";
@@ -789,56 +920,47 @@ function renderApps() {
 
         const info = document.createElement("div");
         info.className = "wallpaper-info";
-
         const heading = document.createElement("div");
         heading.className = "app-heading";
-
-        const icon = document.createElement("img");
-        icon.className = "app-icon";
-        icon.src = app.icon;
-        icon.alt = "";
-
+        const appIcon = document.createElement("img");
+        appIcon.className = "app-icon";
+        appIcon.src = app.icon;
+        appIcon.alt = "";
         const name = document.createElement("div");
         name.className = "wallpaper-name";
         name.textContent = app.name;
-
-        heading.append(icon, name);
+        heading.append(appIcon, name);
 
         const button = document.createElement("button");
         button.textContent = installed ? "Installed" : "Install";
         button.disabled = installed;
-
         const progress = document.createElement("div");
         progress.className = "progress";
-
         const fill = document.createElement("div");
         fill.className = "progress-fill";
         progress.appendChild(fill);
 
         button.onclick = () => {
             if (installedApps.includes(app.id)) return;
-
             button.disabled = true;
             button.textContent = "Installing...";
             progress.style.display = "block";
-
             const duration = 200 + Math.random() * 400;
             const start = performance.now();
 
-            function animateProgress(now) {
+            function animate(now) {
                 const amount = Math.min((now - start) / duration, 1);
                 fill.style.width = (amount * 100) + "%";
-
                 if (amount < 1) {
-                    requestAnimationFrame(animateProgress);
+                    requestAnimationFrame(animate);
                 } else {
                     installedApps.push(app.id);
                     localStorage.setItem("installedApps", JSON.stringify(installedApps));
                     renderApps();
+                    renderDesktopApps();
                 }
             }
-
-            requestAnimationFrame(animateProgress);
+            requestAnimationFrame(animate);
         };
 
         info.append(heading, button, progress);
@@ -970,9 +1092,24 @@ function showStoreTab(tab) {
 
 /* WINDOWS */
 
+let windowOpenCount = 0;
+
 function openWindow(id) {
     const win = document.getElementById(id);
+    if (!win) return;
+    const wasOpen = win.classList.contains("active");
     win.classList.add("active");
+
+    if (!wasOpen && !win.classList.contains("maximized")) {
+        const offset = (windowOpenCount % 7) * 28;
+        const rect = win.getBoundingClientRect();
+        const width = rect.width || Math.min(760, window.innerWidth - 30);
+        const height = rect.height || Math.min(520, window.innerHeight - 75);
+        win.style.transform = "none";
+        win.style.left = Math.max(10, Math.min((window.innerWidth - width) / 2 + offset, window.innerWidth - width - 10)) + "px";
+        win.style.top = Math.max(10, Math.min((window.innerHeight - height) / 2 + offset, window.innerHeight - height - 58)) + "px";
+        windowOpenCount++;
+    }
     win.style.zIndex = ++highestWindow;
 }
 
@@ -1040,7 +1177,10 @@ document.querySelectorAll(".window").forEach(win => {
 
 /* INITIALIZE */
 
+const appStoreIcon = document.getElementById("appStoreDesktopIcon");
+makeDesktopIconDraggable(appStoreIcon, "app-store", 20, 20, () => openWindow("storeWindow"));
 renderApps();
+renderDesktopApps();
 applyBlur();
 
 if (currentWallpaper === "__solid__") {

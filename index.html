@@ -452,8 +452,6 @@ input[type="range"] {
 
 </div>
 
-<!-- SETTINGS WINDOW -->
-
 <div class="window" id="settingsWindow">
     <div class="titlebar">
         <span class="window-title">Settings</span>
@@ -488,8 +486,6 @@ input[type="range"] {
         </div>
     </div>
 </div>
-
-<!-- APP STORE WINDOW -->
 
 <div class="window" id="storeWindow">
     <div class="titlebar">
@@ -641,13 +637,11 @@ function createPreview(filename) {
         video.loop = true;
         video.playsInline = true;
         video.autoplay = false;
-
-        // Load the video immediately so its first frame is visible.
         video.preload = "auto";
         video.src = wallpaperPath(filename);
+
         video.load();
 
-        // Keep the preview paused until the user hovers over it.
         video.addEventListener("loadeddata", () => {
             video.pause();
             video.currentTime = 0;
@@ -779,6 +773,7 @@ function renderStore() {
                     requestAnimationFrame(animateProgress);
                 } else {
                     installedWallpapers.push(filename);
+
                     localStorage.setItem(
                         "installedWallpapers",
                         JSON.stringify(installedWallpapers)
@@ -802,20 +797,35 @@ function renderStore() {
 
 async function loadWallpapers() {
     try {
-        const response = await fetch("wallpapers.json");
+        const response = await fetch("wallpapers.json?v=" + Date.now(), {
+            cache: "no-store"
+        });
 
         if (!response.ok) {
             throw new Error("Could not load wallpapers.json");
         }
 
-        wallpaperFiles = await response.json();
+        const files = await response.json();
+
+        if (!Array.isArray(files)) {
+            throw new Error("wallpapers.json must contain an array");
+        }
+
+        wallpaperFiles = [...new Set(files)].filter(filename =>
+            typeof filename === "string" &&
+            /\.(jpg|jpeg|png|webp|mp4|webm|ogg)$/i.test(filename)
+        );
+
+        console.log("Loaded wallpapers:", wallpaperFiles);
 
         renderStore();
         renderInstalled();
+
     } catch (error) {
-        console.error(error);
+        console.error("Wallpaper loading failed:", error);
+
         document.getElementById("storeGrid").innerHTML =
-            '<div class="empty-state">Could not load wallpapers. Check wallpapers.json.</div>';
+            '<div class="empty-state">Could not load wallpapers.json.</div>';
     }
 }
 

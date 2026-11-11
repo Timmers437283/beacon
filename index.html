@@ -56,7 +56,6 @@ button {
     display: block;
     filter: blur(var(--wallpaper-blur, 0px));
     transform: scale(1.02);
-    transition: filter .15s ease;
 }
 
 /* TASKBAR */
@@ -67,18 +66,13 @@ button {
     left: 0;
     width: 100%;
     height: 52px;
-
     display: flex;
     align-items: center;
     justify-content: flex-end;
-
     padding: 0 15px;
-    gap: 15px;
-
     background: rgba(18,18,18,.80);
     backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
-
     border-top: 1px solid rgba(255,255,255,.06);
     z-index: 100;
 }
@@ -109,7 +103,6 @@ button {
     text-align: right;
     font-size: 12px;
     line-height: 17px;
-    cursor: default;
     min-width: 80px;
 }
 
@@ -124,7 +117,6 @@ button {
     position: absolute;
     width: 720px;
     height: 550px;
-
     max-width: calc(100vw - 30px);
     max-height: calc(100dvh - 85px);
 
@@ -141,12 +133,18 @@ button {
 
     border: 1px solid rgba(255,255,255,.12);
     border-radius: 9px;
-
     overflow: hidden;
 
     box-shadow: 0 15px 60px rgba(0,0,0,.4);
-
     z-index: 50;
+
+    transition:
+        left .24s cubic-bezier(.2,.8,.2,1),
+        top .24s cubic-bezier(.2,.8,.2,1),
+        width .24s cubic-bezier(.2,.8,.2,1),
+        height .24s cubic-bezier(.2,.8,.2,1),
+        border-radius .24s ease,
+        opacity .16s ease;
 }
 
 .app-window.open {
@@ -165,7 +163,7 @@ button {
     }
 }
 
-/* WINDOW TITLEBAR */
+/* TITLEBAR */
 
 .titlebar {
     height: 43px;
@@ -243,7 +241,7 @@ button {
     left: 3px;
 }
 
-/* SETTINGS LAYOUT */
+/* SETTINGS */
 
 .settings-body {
     display: flex;
@@ -276,7 +274,6 @@ button {
     font-size: 13px;
     border-radius: 5px;
     cursor: pointer;
-    transition: background .15s;
 }
 
 .side-button:hover,
@@ -313,8 +310,6 @@ button {
     margin-bottom: 25px;
 }
 
-/* SETTINGS SECTIONS */
-
 .section {
     margin-bottom: 24px;
 }
@@ -324,6 +319,8 @@ button {
     font-weight: 600;
     margin-bottom: 11px;
 }
+
+/* COLOR */
 
 .color-picker-container {
     display: flex;
@@ -348,7 +345,7 @@ button {
     font-size: 12px;
 }
 
-/* BLUR SLIDER */
+/* BLUR */
 
 .slider-container {
     background: rgba(255,255,255,.045);
@@ -364,13 +361,13 @@ button {
     margin-bottom: 12px;
 }
 
-.slider-label {
+.slider-label,
+.slider-number {
     font-size: 12px;
     color: #ddd;
 }
 
 .slider-number {
-    font-size: 12px;
     color: #aaa;
 }
 
@@ -405,7 +402,7 @@ button {
     cursor: pointer;
 }
 
-/* WALLPAPER GRID */
+/* WALLPAPERS */
 
 .wallpaper-grid {
     display: grid;
@@ -445,6 +442,12 @@ button {
     color: #eee;
 }
 
+.preview-hint {
+    font-size: 10px;
+    color: #888;
+    padding: 0 10px 9px;
+}
+
 /* MOBILE */
 
 @media(max-width: 550px) {
@@ -471,22 +474,6 @@ button {
         max-height: calc(100dvh - 52px);
     }
 }
-
-.app-window.maximized {
-    width: 100vw;
-    height: calc(100dvh - 52px);
-    max-width: none;
-    max-height: none;
-    top: 0;
-    left: 0;
-    transform: none;
-    border-radius: 0;
-    animation: none;
-}
-
-.app-window.maximized .titlebar {
-    cursor: default;
-}
 </style>
 </head>
 
@@ -496,8 +483,6 @@ button {
 
     <div class="wallpaper-layer" id="wallpaperLayer"></div>
 
-    <!-- SETTINGS WINDOW -->
-
     <div class="app-window" id="settingsWindow">
 
         <div class="titlebar" id="titlebar">
@@ -506,17 +491,13 @@ button {
 
             <div class="window-controls">
 
-                <button class="window-control" onclick="minimizeWindow()" title="Minimize">
-                    −
-                </button>
+                <button class="window-control" onclick="minimizeWindow()" title="Minimize">−</button>
 
                 <button class="window-control" id="maximizeButton" onclick="maximizeWindow()" title="Maximize">
                     <span class="maximize-icon" id="maximizeIcon"></span>
                 </button>
 
-                <button class="window-control close" onclick="closeWindow()" title="Close">
-                    ×
-                </button>
+                <button class="window-control close" onclick="closeWindow()" title="Close">×</button>
 
             </div>
         </div>
@@ -524,21 +505,14 @@ button {
         <div class="settings-body">
 
             <div class="sidebar">
-
                 <h2>Settings</h2>
-
-                <button class="side-button active">
-                    Wallpapers
-                </button>
-
+                <button class="side-button active">Wallpapers</button>
             </div>
 
             <div class="settings-content">
 
                 <h1>Personalization</h1>
                 <p class="subtitle">Customize your desktop appearance.</p>
-
-                <!-- COLOR PICKER -->
 
                 <div class="section">
 
@@ -553,14 +527,10 @@ button {
                             value="#191919"
                         >
 
-                        <span class="color-value" id="colorValue">
-                            RGB(25, 25, 25)
-                        </span>
+                        <span class="color-value" id="colorValue">RGB(25, 25, 25)</span>
 
                     </div>
                 </div>
-
-                <!-- BLUR SLIDER -->
 
                 <div class="section">
 
@@ -585,8 +555,6 @@ button {
                     </div>
                 </div>
 
-                <!-- WALLPAPERS -->
-
                 <div class="section">
 
                     <div class="section-title">Wallpapers</div>
@@ -599,22 +567,13 @@ button {
 
             </div>
         </div>
-
     </div>
-
-    <!-- TASKBAR -->
 
     <div class="taskbar">
 
         <div class="taskbar-right">
 
-            <button
-                class="settings-button"
-                onclick="openSettings()"
-                title="Settings"
-            >
-                ⚙
-            </button>
+            <button class="settings-button" onclick="openSettings()" title="Settings">⚙</button>
 
             <div class="clock">
                 <div class="time" id="time">00:00</div>
@@ -622,7 +581,6 @@ button {
             </div>
 
         </div>
-
     </div>
 
 </div>
@@ -648,19 +606,17 @@ let currentBlur = Number(localStorage.getItem("desktopBlur") ?? 0);
 
 let isMaximized = false;
 let isDragging = false;
-
 let dragStartX = 0;
 let dragStartY = 0;
 let windowStartX = 0;
 let windowStartY = 0;
-
 let previousPosition = null;
+let previewTimers = new Map();
 
 
 /* CLOCK */
 
 function updateClock() {
-
     const now = new Date();
 
     document.getElementById("time").textContent =
@@ -671,7 +627,6 @@ function updateClock() {
 
     document.getElementById("date").textContent =
         now.toLocaleDateString();
-
 }
 
 setInterval(updateClock, 1000);
@@ -681,56 +636,39 @@ updateClock();
 /* WINDOW CONTROLS */
 
 function openSettings() {
-
-    settingsWindow.classList.remove("maximized");
+    settingsWindow.classList.add("open");
 
     if (isMaximized) {
         isMaximized = false;
         updateMaximizeIcon();
+        settingsWindow.classList.remove("maximized");
     }
-
-    settingsWindow.classList.add("open");
 
     settingsWindow.style.left = "50%";
     settingsWindow.style.top = "50%";
+    settingsWindow.style.width = "720px";
+    settingsWindow.style.height = "550px";
     settingsWindow.style.transform = "translate(-50%, -50%)";
-
 }
 
 function closeWindow() {
-
     settingsWindow.classList.remove("open");
-
-    isDragging = false;
-
+    stopAllPreviews();
 }
 
 function minimizeWindow() {
-
     settingsWindow.classList.remove("open");
-
+    stopAllPreviews();
 }
 
 function updateMaximizeIcon() {
-
     const icon = document.getElementById("maximizeIcon");
 
-    if (isMaximized) {
-
-        icon.className = "restore-icon";
-
-    } else {
-
-        icon.className = "maximize-icon";
-
-    }
-
+    icon.className = isMaximized ? "restore-icon" : "maximize-icon";
 }
 
 function maximizeWindow() {
-
     if (!isMaximized) {
-
         const rect = settingsWindow.getBoundingClientRect();
 
         previousPosition = {
@@ -740,52 +678,43 @@ function maximizeWindow() {
             height: rect.height
         };
 
-        settingsWindow.classList.add("maximized");
-
-        settingsWindow.style.left = "";
-        settingsWindow.style.top = "";
-        settingsWindow.style.transform = "";
+        settingsWindow.style.transition = "none";
+        settingsWindow.style.left = "0px";
+        settingsWindow.style.top = "0px";
+        settingsWindow.style.width = "100vw";
+        settingsWindow.style.height = "calc(100dvh - 52px)";
+        settingsWindow.style.transform = "none";
+        settingsWindow.style.borderRadius = "0px";
 
         isMaximized = true;
-
     } else {
+        if (!previousPosition) return;
 
-        settingsWindow.classList.remove("maximized");
-
-        if (previousPosition) {
-
-            settingsWindow.style.width = previousPosition.width + "px";
-            settingsWindow.style.height = previousPosition.height + "px";
-
-            settingsWindow.style.left = previousPosition.left + "px";
-            settingsWindow.style.top = previousPosition.top + "px";
-
-            settingsWindow.style.transform = "none";
-
-        } else {
-
-            settingsWindow.style.left = "50%";
-            settingsWindow.style.top = "50%";
-            settingsWindow.style.transform = "translate(-50%, -50%)";
-
-        }
+        settingsWindow.style.left = previousPosition.left + "px";
+        settingsWindow.style.top = previousPosition.top + "px";
+        settingsWindow.style.width = previousPosition.width + "px";
+        settingsWindow.style.height = previousPosition.height + "px";
+        settingsWindow.style.transform = "none";
+        settingsWindow.style.borderRadius = "9px";
 
         isMaximized = false;
-
     }
 
     updateMaximizeIcon();
 
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            settingsWindow.style.transition = "";
+        });
+    });
 }
 
 
 /* WINDOW DRAGGING */
 
 titlebar.addEventListener("pointerdown", function(e) {
-
     if (e.target.closest(".window-controls")) return;
-    if (isMaximized) return;
-    if (e.button !== 0) return;
+    if (isMaximized || e.button !== 0) return;
 
     const rect = settingsWindow.getBoundingClientRect();
 
@@ -801,162 +730,106 @@ titlebar.addEventListener("pointerdown", function(e) {
     settingsWindow.style.top = rect.top + "px";
     settingsWindow.style.transform = "none";
 
-    titlebar.setPointerCapture(e.pointerId);
+    settingsWindow.style.transition = "none";
 
+    titlebar.setPointerCapture(e.pointerId);
 });
 
 titlebar.addEventListener("pointermove", function(e) {
-
     if (!isDragging) return;
 
     const dx = e.clientX - dragStartX;
     const dy = e.clientY - dragStartY;
 
     const maxX = window.innerWidth - settingsWindow.offsetWidth;
-    const maxY = window.innerHeight - 52;
+    const maxY = window.innerHeight - 52 - 43;
 
-    const x = Math.max(
-        0,
-        Math.min(maxX, windowStartX + dx)
-    );
-
-    const y = Math.max(
-        0,
-        Math.min(maxY - 43, windowStartY + dy)
-    );
+    const x = Math.max(0, Math.min(maxX, windowStartX + dx));
+    const y = Math.max(0, Math.min(maxY, windowStartY + dy));
 
     settingsWindow.style.left = x + "px";
     settingsWindow.style.top = y + "px";
-
 });
 
-titlebar.addEventListener("pointerup", function() {
+function stopDragging() {
+    if (!isDragging) return;
+
     isDragging = false;
-});
+    settingsWindow.style.transition = "";
+}
 
-titlebar.addEventListener("pointercancel", function() {
-    isDragging = false;
-});
+titlebar.addEventListener("pointerup", stopDragging);
+titlebar.addEventListener("pointercancel", stopDragging);
 
 
-/* WALLPAPER NAMES */
+/* WALLPAPER HELPERS */
 
 function getWallpaperName(filename) {
-
     return filename
         .replace(/\.[^/.]+$/, "")
         .replace(/_/g, " ");
-
 }
-
-
-/* WALLPAPER LOADING */
 
 function getWallpaperPath(filename) {
-
     return "Wallpaper/" +
         filename.split("/").map(part => encodeURIComponent(part)).join("/");
-
 }
 
-function createWallpaperElement(filename, preview = false) {
-
-    const extension = filename.split(".").pop().toLowerCase();
-
-    const source = getWallpaperPath(filename);
-
-    let element;
-
-    if (extension === "mp4" || extension === "webm") {
-
-        element = document.createElement("video");
-
-        element.src = source;
-        element.muted = true;
-        element.loop = true;
-        element.playsInline = true;
-        element.autoplay = true;
-
-        if (preview) {
-            element.preload = "metadata";
-        } else {
-            element.preload = "auto";
-        }
-
-        element.play().catch(() => {});
-
-    } else {
-
-        element = document.createElement("img");
-
-        element.src = source;
-        element.alt = getWallpaperName(filename);
-
-    }
-
-    return element;
-
+function isVideo(filename) {
+    return /\.(mp4|webm)$/i.test(filename);
 }
+
+
+/* DESKTOP WALLPAPER */
 
 function setWallpaper(filename) {
-
     currentWallpaper = filename;
 
     wallpaperLayer.innerHTML = "";
 
-    const wallpaper = createWallpaperElement(filename);
+    const wallpaper = document.createElement(
+        isVideo(filename) ? "video" : "img"
+    );
+
+    wallpaper.src = getWallpaperPath(filename);
+
+    if (isVideo(filename)) {
+        wallpaper.autoplay = true;
+        wallpaper.muted = true;
+        wallpaper.loop = true;
+        wallpaper.playsInline = true;
+        wallpaper.play().catch(() => {});
+    } else {
+        wallpaper.alt = getWallpaperName(filename);
+    }
 
     wallpaperLayer.appendChild(wallpaper);
 
     localStorage.setItem("desktopWallpaper", filename);
 
     renderWallpapers();
-
-}
-
-function renderWallpapers() {
-
-    wallpaperGrid.innerHTML = "";
-
-    wallpapers.forEach(filename => {
-
-        const card = document.createElement("div");
-
-        card.className = "wallpaper-card" +
-            (currentWallpaper === filename ? " selected" : "");
-
-        const preview = createWallpaperElement(filename, true);
-
-        preview.className = "wallpaper-preview";
-
-        const name = document.createElement("div");
-
-        name.className = "wallpaper-name";
-        name.textContent = getWallpaperName(filename);
-
-        card.append(preview, name);
-
-        card.addEventListener("click", function() {
-
-            setWallpaper(filename);
-
-        });
-
-        wallpaperGrid.appendChild(card);
-
-    });
-
 }
 
 
-/* BACKGROUND COLOR */
+/* REMOVE WALLPAPER WHEN CHANGING COLOR */
+
+function useSolidColor() {
+    currentWallpaper = "";
+
+    wallpaperLayer.innerHTML = "";
+
+    localStorage.removeItem("desktopWallpaper");
+
+    renderWallpapers();
+}
+
+
+/* COLOR */
 
 function applyColor(color) {
-
     currentColor = color;
 
     desktop.style.backgroundColor = color;
-
     colorPicker.value = color;
 
     const r = parseInt(color.slice(1,3), 16);
@@ -967,23 +840,18 @@ function applyColor(color) {
         `RGB(${r}, ${g}, ${b})`;
 
     localStorage.setItem("desktopColor", color);
-
 }
 
 colorPicker.addEventListener("input", function() {
-
     applyColor(colorPicker.value);
-
+    useSolidColor();
 });
 
 
-/* WALLPAPER BLUR */
+/* BLUR */
 
 function applyBlur(value) {
-
     currentBlur = Number(value);
-
-    // 0-100 is converted into 0-30 pixels.
 
     const blurAmount = currentBlur * 0.3;
 
@@ -998,22 +866,124 @@ function applyBlur(value) {
         currentBlur + "%";
 
     localStorage.setItem("desktopBlur", currentBlur);
-
 }
 
 blurSlider.addEventListener("input", function() {
-
     applyBlur(blurSlider.value);
-
 });
+
+
+/* VIDEO PREVIEWS */
+
+function stopPreview(video) {
+    video.pause();
+    video.currentTime = 0;
+    video.removeAttribute("src");
+    video.load();
+}
+
+function stopAllPreviews() {
+    previewTimers.forEach(timer => clearTimeout(timer));
+    previewTimers.clear();
+
+    wallpaperGrid.querySelectorAll("video").forEach(video => {
+        stopPreview(video);
+    });
+}
+
+function createPreview(filename) {
+    if (isVideo(filename)) {
+        const video = document.createElement("video");
+
+        video.className = "wallpaper-preview";
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+        video.preload = "none";
+        video.dataset.filename = filename;
+
+        return video;
+    }
+
+    const image = document.createElement("img");
+
+    image.className = "wallpaper-preview";
+    image.src = getWallpaperPath(filename);
+    image.alt = getWallpaperName(filename);
+
+    return image;
+}
+
+function startPreview(video, filename) {
+    if (!settingsWindow.classList.contains("open")) return;
+
+    video.src = getWallpaperPath(filename);
+    video.load();
+
+    video.play().catch(() => {});
+}
+
+function addPreviewEvents(card, preview, filename) {
+    if (!isVideo(filename)) return;
+
+    card.addEventListener("mouseenter", function() {
+        const timer = setTimeout(() => {
+            startPreview(preview, filename);
+            previewTimers.delete(preview);
+        }, 500);
+
+        previewTimers.set(preview, timer);
+    });
+
+    card.addEventListener("mouseleave", function() {
+        const timer = previewTimers.get(preview);
+
+        if (timer) {
+            clearTimeout(timer);
+            previewTimers.delete(preview);
+        }
+
+        stopPreview(preview);
+    });
+}
+
+
+/* RENDER WALLPAPERS */
+
+function renderWallpapers() {
+    wallpaperGrid.innerHTML = "";
+
+    wallpapers.forEach(filename => {
+        const card = document.createElement("div");
+
+        card.className = "wallpaper-card" +
+            (currentWallpaper === filename ? " selected" : "");
+
+        const preview = createPreview(filename);
+
+        const name = document.createElement("div");
+        name.className = "wallpaper-name";
+        name.textContent = getWallpaperName(filename);
+
+        card.append(preview, name);
+
+        if (isVideo(filename)) {
+            addPreviewEvents(card, preview, filename);
+        }
+
+        card.addEventListener("click", function() {
+            setWallpaper(filename);
+        });
+
+        wallpaperGrid.appendChild(card);
+    });
+}
 
 
 /* LOAD WALLPAPERS */
 
 async function loadWallpapers() {
-
     try {
-
         const response = await fetch("wallpapers.json");
 
         if (!response.ok) {
@@ -1032,49 +1002,31 @@ async function loadWallpapers() {
         );
 
         if (!wallpapers.length) {
-
             wallpaperGrid.textContent = "No wallpapers found.";
-
             return;
-
         }
 
-        // Windows 11 is the default wallpaper on first visit.
-
         if (!currentWallpaper || !wallpapers.includes(currentWallpaper)) {
-
-            if (wallpapers.includes("Windows_11.jpg")) {
-
-                currentWallpaper = "Windows_11.jpg";
-
-            } else {
-
-                currentWallpaper = wallpapers[0];
-
-            }
-
+            currentWallpaper = wallpapers.includes("Windows_11.jpg")
+                ? "Windows_11.jpg"
+                : wallpapers[0];
         }
 
         setWallpaper(currentWallpaper);
 
     } catch (error) {
-
         wallpaperGrid.textContent =
             "Unable to load wallpapers. Check wallpapers.json.";
 
         console.error(error);
-
     }
-
 }
 
 
 /* INITIAL SETTINGS */
 
 applyColor(currentColor);
-
 applyBlur(currentBlur);
-
 loadWallpapers();
 
 </script>

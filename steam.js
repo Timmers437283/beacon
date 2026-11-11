@@ -2,7 +2,8 @@
     "use strict";
 
     const SHORTCUT_KEY = "beacon_steam_shortcuts";
-    const STEAM_ICON = "Resources/Icons/Steam.png";
+    const STEAM_ICON = "Resources/AppBase/Steam/Steam.png";
+    const STEAM_PREVIEW = "Resources/AppBase/Steam/Preview.png";
 
     const style = document.createElement("style");
     style.textContent = `
@@ -78,7 +79,7 @@
                 icon,
                 "steam-game-" + game.id,
                 130,
-                125 + index * 105,
+                20 + index * 105,
                 () => launchGame(game.id)
             );
 
@@ -93,11 +94,19 @@
         const desktop = document.querySelector(".desktop");
         if (!desktop) return;
 
-        const steamIcon = document.createElement("div");
-        steamIcon.className = "desktop-icon";
-        steamIcon.innerHTML = '<img src="' + STEAM_ICON + '" alt="Steam"><span>Steam</span>';
-        desktop.insertBefore(steamIcon, document.getElementById("desktopApps"));
-        makeDesktopIconDraggable(steamIcon, "steam", 130, 20, () => openWindow("steamWindow"));
+        // Register Steam as an installable app in the App Store.
+        // Once installed, index.html's own code puts the icon on the desktop.
+        if (!availableApps.some(a => a.id === "steam")) {
+            availableApps.push({
+                id: "steam",
+                name: "Steam",
+                icon: STEAM_ICON,
+                preview: STEAM_PREVIEW,
+                windowId: "steamWindow"
+            });
+            renderApps();
+            renderDesktopApps();
+        }
 
         const box = document.createElement("div");
         box.id = "steamShortcuts";

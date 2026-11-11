@@ -284,6 +284,53 @@ input[type="range"] {
     cursor: pointer;
 }
 
+.setting-toggle {
+    appearance: none;
+    width: 42px;
+    height: 24px;
+    border-radius: 20px;
+    background: #555;
+    position: relative;
+    cursor: pointer;
+    transition: background .18s ease;
+    flex-shrink: 0;
+}
+.setting-toggle::after {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    top: 3px;
+    left: 3px;
+    border-radius: 50%;
+    background: white;
+    transition: transform .18s ease;
+}
+.setting-toggle:checked { background: #397bd8; }
+.setting-toggle:checked::after { transform: translateX(18px); }
+
+.window-resize-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 19px;
+    height: 19px;
+    cursor: nwse-resize;
+    z-index: 5;
+    touch-action: none;
+}
+.window-resize-handle::after {
+    content: "";
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #ffffff70;
+    border-bottom: 2px solid #ffffff70;
+}
+.window.maximized .window-resize-handle { display: none; }
+
 .wallpaper-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -533,6 +580,14 @@ input[type="range"] {
         </div>
 
         <div class="setting-section">
+            <h3>Desktop</h3>
+            <div class="setting-row">
+                <span>Snap apps into place</span>
+                <input class="setting-toggle" type="checkbox" id="snapAppsToggle" checked>
+            </div>
+        </div>
+
+        <div class="setting-section">
             <h3>Installed wallpapers</h3>
             <div class="wallpaper-grid" id="installedGrid"></div>
         </div>
@@ -626,6 +681,7 @@ let currentColor = localStorage.getItem("desktopColor") || "#202020";
 let currentBlur = localStorage.getItem("desktopBlur") || "0";
 
 let highestWindow = 10;
+let snapApps = localStorage.getItem("snapDesktopApps") !== "false";
 
 /* CLOCK */
 
@@ -710,6 +766,14 @@ document.getElementById("blurSlider").addEventListener("input", event => {
     currentBlur = event.target.value;
     localStorage.setItem("desktopBlur", currentBlur);
     applyBlur();
+});
+
+const snapAppsToggle = document.getElementById("snapAppsToggle");
+snapAppsToggle.checked = snapApps;
+snapAppsToggle.addEventListener("change", event => {
+    snapApps = event.target.checked;
+    localStorage.setItem("snapDesktopApps", String(snapApps));
+    if (snapApps) applySnapToDesktopIcons();
 });
 
 /* VIDEO PREVIEWS */
@@ -811,6 +875,17 @@ function renderInstalled() {
 
 /* DESKTOP ICONS */
 
+function snapIconPosition(left, top, icon) {
+    const stepX = 110;
+    const stepY = 105;
+    const maxLeft = Math.max(0, window.innerWidth - icon.offsetWidth);
+    const maxTop = Math.max(0, window.innerHeight - 48 - icon.offsetHeight);
+    return {
+        left: Math.max(0, Math.min(maxLeft, 20 + Math.round((left - 20) / stepX) * stepX)),
+        top: Math.max(0, Math.min(maxTop, 20 + Math.round((top - 20) / stepY) * stepY))
+    };
+}
+
 function saveDesktopIconPosition(id, icon) {
     desktopIconPositions[id] = {
         left: parseFloat(icon.style.left) || 20,
@@ -819,10 +894,29 @@ function saveDesktopIconPosition(id, icon) {
     localStorage.setItem("desktopIconPositions", JSON.stringify(desktopIconPositions));
 }
 
+function applySnapToDesktopIcons() {
+    document.querySelectorAll(".desktop-icon[data-desktop-id], #desktopApps .desktop-icon").forEach(icon => {
+        const id = icon.dataset.desktopId || icon.dataset.appId;
+        if (!id) return;
+        const position = snapIconPosition(parseFloat(icon.style.left) || 20, parseFloat(icon.style.top) || 20, icon);
+        icon.style.left = position.left + "px";
+        icon.style.top = position.top + "px";
+        saveDesktopIconPosition(id, icon);
+    });
+}
+
 function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
+    icon.dataset.desktopId = id;
     const saved = desktopIconPositions[id];
-    icon.style.left = (saved && Number.isFinite(saved.left) ? saved.left : defaultLeft) + "px";
-    icon.style.top = (saved && Number.isFinite(saved.top) ? saved.top : defaultTop) + "px";
+    let initialLeft = saved && Number.isFinite(saved.left) ? saved.left : defaultLeft;
+    let initialTop = saved && Number.isFinite(saved.top) ? saved.top : defaultTop;
+    if (snapApps) {
+        const snapped = snapIconPosition(initialLeft, initialTop, icon);
+        initialLeft = snapped.left;
+        initialTop = snapped.top;
+    }
+    icon.style.left = initialLeft + "px";
+    icon.style.top = initialTop + "px";
 
     let startX = 0;
     let startY = 0;
@@ -860,6 +954,11 @@ function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
         if (icon.hasPointerCapture(event.pointerId)) icon.releasePointerCapture(event.pointerId);
         icon.classList.remove("dragging");
         if (moved) {
+            if (snapApps) {
+                const snapped = snapIconPosition(parseFloat(icon.style.left) || 0, parseFloat(icon.style.top) || 0, icon);
+                icon.style.left = snapped.left + "px";
+                icon.style.top = snapped.top + "px";
+            }
             saveDesktopIconPosition(id, icon);
             icon.dataset.justDragged = "true";
             setTimeout(() => { icon.dataset.justDragged = "false"; }, 0);
@@ -884,7 +983,8 @@ function renderDesktopApps() {
 
         const icon = document.createElement("div");
         icon.className = "desktop-icon";
-        icon.title = "Double-click to open " + app.name;
+        icon.dataset.appId = app.id;
+        icon.title = "Click to open " + app.name;
 
         const image = document.createElement("img");
         image.src = app.icon;
@@ -1127,9 +1227,46 @@ function maximizeWindow(id) {
     win.style.zIndex = ++highestWindow;
 }
 
-/* WINDOW DRAGGING */
+/* WINDOW RESIZING AND DRAGGING */
 
 document.querySelectorAll(".window").forEach(win => {
+    const resizeHandle = document.createElement("div");
+    resizeHandle.className = "window-resize-handle";
+    resizeHandle.title = "Drag to resize";
+    win.appendChild(resizeHandle);
+
+    let resizing = false;
+    let resizeStartX = 0;
+    let resizeStartY = 0;
+    let resizeStartWidth = 0;
+    let resizeStartHeight = 0;
+
+    resizeHandle.addEventListener("pointerdown", event => {
+        if (win.classList.contains("maximized") || !win.classList.contains("active")) return;
+        event.preventDefault();
+        event.stopPropagation();
+        resizing = true;
+        const rect = win.getBoundingClientRect();
+        resizeStartX = event.clientX;
+        resizeStartY = event.clientY;
+        resizeStartWidth = rect.width;
+        resizeStartHeight = rect.height;
+        win.style.zIndex = ++highestWindow;
+        resizeHandle.setPointerCapture(event.pointerId);
+    });
+
+    resizeHandle.addEventListener("pointermove", event => {
+        if (!resizing) return;
+        const maxWidth = Math.max(360, window.innerWidth - win.offsetLeft - 10);
+        const maxHeight = Math.max(240, window.innerHeight - win.offsetTop - 58);
+        win.style.width = Math.max(360, Math.min(maxWidth, resizeStartWidth + event.clientX - resizeStartX)) + "px";
+        win.style.height = Math.max(240, Math.min(maxHeight, resizeStartHeight + event.clientY - resizeStartY)) + "px";
+    });
+
+    const stopResize = () => { resizing = false; };
+    resizeHandle.addEventListener("pointerup", stopResize);
+    resizeHandle.addEventListener("pointercancel", stopResize);
+
     const titlebar = win.querySelector(".titlebar");
     let dragging = false;
     let offsetX = 0;

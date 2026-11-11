@@ -118,6 +118,7 @@ body {
     padding: 0 15px;
     gap: 15px;
     border-top: 1px solid #ffffff12;
+    z-index: 20;
 }
 
 .taskbar-button {
@@ -140,7 +141,14 @@ body {
     text-align: right;
     font-size: 12px;
     line-height: 17px;
-    cursor: default;
+    cursor: pointer;
+    padding: 5px 8px;
+    border-radius: 5px;
+}
+
+.clock:hover,
+.clock.selected {
+    background: #ffffff18;
 }
 
 .window {
@@ -382,7 +390,7 @@ input[type="range"] {
     display: none;
 }
 
-/* WALLPAPERS AND STORE */
+/* STORE */
 
 .wallpaper-grid {
     display: grid;
@@ -557,6 +565,328 @@ input[type="range"] {
     padding-top: 20px;
 }
 
+/* DATE AND WEATHER PANEL */
+
+#calendarPanel {
+    position: fixed;
+    z-index: 100;
+    right: 12px;
+    bottom: 58px;
+    width: 365px;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 75px);
+    overflow-y: auto;
+    padding: 20px;
+    border: 1px solid #ffffff20;
+    border-radius: 10px;
+    background: #191919f5;
+    backdrop-filter: blur(25px);
+    box-shadow: 0 15px 50px #0009;
+    display: none;
+}
+
+#calendarPanel.open {
+    display: block;
+    animation: panelIn .15s ease;
+}
+
+@keyframes panelIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.calendar-time {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -1px;
+}
+
+.calendar-full-date {
+    color: #aaa;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.calendar-close {
+    border: 0;
+    background: transparent;
+    color: #aaa;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.calendar-close:hover {
+    color: white;
+}
+
+.weather-section {
+    background: #ffffff09;
+    border: 1px solid #ffffff10;
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.weather-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.weather-temperature {
+    font-size: 37px;
+    font-weight: 600;
+}
+
+.weather-description {
+    font-size: 12px;
+    color: #ddd;
+    margin-top: 2px;
+}
+
+.weather-location {
+    color: #888;
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+.weather-icon {
+    font-size: 40px;
+    padding-right: 5px;
+}
+
+.weather-details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 17px;
+    padding-top: 13px;
+    border-top: 1px solid #ffffff12;
+}
+
+.weather-details div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.weather-details span {
+    font-size: 10px;
+    color: #888;
+}
+
+.weather-details strong {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.weather-location-controls {
+    display: flex;
+    gap: 6px;
+    margin-top: 15px;
+}
+
+.weather-location-controls input {
+    min-width: 0;
+    flex: 1;
+    height: 31px;
+    padding: 0 9px;
+    border: 1px solid #ffffff20;
+    border-radius: 4px;
+    outline: none;
+    background: #111;
+    color: white;
+    font-size: 11px;
+    user-select: text;
+}
+
+.weather-location-controls input:focus {
+    border-color: #888;
+}
+
+.weather-location-controls button {
+    height: 31px;
+    min-width: 34px;
+    padding: 0 9px;
+    border: 0;
+    border-radius: 4px;
+    background: #eee;
+    color: #111;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.weather-location-controls button:hover {
+    background: white;
+}
+
+.weather-credit {
+    margin-top: 10px;
+    color: #666;
+    font-size: 9px;
+}
+
+.weather-credit a {
+    color: #999;
+    text-decoration: none;
+}
+
+.weather-credit a:hover {
+    color: white;
+}
+
+.calendar-divider {
+    height: 1px;
+    background: #ffffff16;
+    margin: 17px 0;
+}
+
+.calendar-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 13px;
+}
+
+.calendar-month {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.calendar-arrows {
+    display: flex;
+    gap: 5px;
+}
+
+.calendar-arrows button {
+    width: 27px;
+    height: 27px;
+    border: 0;
+    border-radius: 4px;
+    background: #ffffff10;
+    color: white;
+    font-size: 19px;
+    cursor: pointer;
+}
+
+.calendar-arrows button:hover {
+    background: #ffffff25;
+}
+
+.calendar-weekdays,
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+}
+
+.calendar-weekdays {
+    margin-bottom: 7px;
+}
+
+.calendar-weekdays span {
+    color: #777;
+    font-size: 10px;
+    padding: 5px 0;
+}
+
+.calendar-day {
+    height: 38px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 11px;
+    position: relative;
+}
+
+.calendar-day:hover {
+    background: #ffffff18;
+}
+
+.calendar-day.other-month {
+    color: #555;
+}
+
+.calendar-day.today {
+    border: 1px solid #777;
+}
+
+.calendar-day.selected {
+    background: #eee;
+    color: #111;
+}
+
+.calendar-day .holiday-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #75a9ff;
+}
+
+.calendar-day.selected .holiday-dot {
+    background: #397bd8;
+}
+
+.calendar-event-heading {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.calendar-event {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid #ffffff10;
+}
+
+.calendar-event:last-child {
+    border-bottom: 0;
+}
+
+.event-marker {
+    width: 3px;
+    height: 29px;
+    border-radius: 3px;
+    background: #75a9ff;
+    flex-shrink: 0;
+}
+
+.event-name {
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.event-description {
+    font-size: 10px;
+    color: #888;
+    margin-top: 3px;
+}
+
+.no-events {
+    font-size: 11px;
+    color: #777;
+    padding: 5px 0;
+}
+
 @media (max-width: 600px) {
     .window {
         width: calc(100vw - 16px);
@@ -575,6 +905,12 @@ input[type="range"] {
 
     .wallpaper-grid {
         grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+    }
+
+    #calendarPanel {
+        right: 8px;
+        bottom: 55px;
+        width: 365px;
     }
 }
 </style>
@@ -596,12 +932,90 @@ input[type="range"] {
 
     <div class="taskbar">
         <button class="taskbar-button" onclick="openWindow('settingsWindow')" title="Settings">⚙</button>
-        <div class="clock">
+
+        <div class="clock" id="taskbarClock" onclick="toggleCalendar()" title="Date and time">
             <div id="clockTime"></div>
             <div id="clockDate"></div>
         </div>
     </div>
 
+</div>
+
+<!-- DATE AND WEATHER PANEL -->
+
+<div id="calendarPanel">
+    <div class="calendar-header">
+        <div>
+            <div class="calendar-time" id="panelTime"></div>
+            <div class="calendar-full-date" id="panelDate"></div>
+        </div>
+        <button class="calendar-close" onclick="toggleCalendar()">×</button>
+    </div>
+
+    <div class="weather-section">
+        <div class="weather-top">
+            <div>
+                <div class="weather-temperature" id="weatherTemperature">--°</div>
+                <div class="weather-description" id="weatherDescription">Weather unavailable</div>
+                <div class="weather-location" id="weatherLocation">Enter a city below</div>
+            </div>
+            <div class="weather-icon" id="weatherIcon">☁</div>
+        </div>
+
+        <div class="weather-details">
+            <div>
+                <span>Feels like</span>
+                <strong id="weatherFeels">--°</strong>
+            </div>
+            <div>
+                <span>Wind</span>
+                <strong id="weatherWind">--</strong>
+            </div>
+            <div>
+                <span>Humidity</span>
+                <strong id="weatherHumidity">--%</strong>
+            </div>
+        </div>
+
+        <div class="weather-location-controls">
+            <input id="weatherCityInput" placeholder="Enter a city..." type="text">
+            <button onclick="searchWeather()">Go</button>
+            <button onclick="useMyLocation()" title="Use my location">⌖</button>
+        </div>
+
+        <div class="weather-credit">
+            Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>
+        </div>
+    </div>
+
+    <div class="calendar-divider"></div>
+
+    <div class="calendar-navigation">
+        <div class="calendar-month" id="calendarMonth"></div>
+        <div class="calendar-arrows">
+            <button onclick="changeCalendarMonth(-1)">‹</button>
+            <button onclick="changeCalendarMonth(1)">›</button>
+        </div>
+    </div>
+
+    <div class="calendar-weekdays">
+        <span>Sun</span>
+        <span>Mon</span>
+        <span>Tue</span>
+        <span>Wed</span>
+        <span>Thu</span>
+        <span>Fri</span>
+        <span>Sat</span>
+    </div>
+
+    <div class="calendar-days" id="calendarDays"></div>
+
+    <div class="calendar-divider"></div>
+
+    <div class="calendar-event-section">
+        <div class="calendar-event-heading">What's happening</div>
+        <div id="calendarEventList"></div>
+    </div>
 </div>
 
 <!-- SETTINGS -->
@@ -622,12 +1036,10 @@ input[type="range"] {
 
         <div class="setting-section">
             <h3>Appearance</h3>
-
             <div class="setting-row">
                 <span>Background color</span>
                 <input type="color" id="backgroundColor" value="#202020">
             </div>
-
             <div class="setting-row">
                 <span>Background blur</span>
                 <input type="range" id="blurSlider" min="0" max="30" value="0">
@@ -696,11 +1108,7 @@ input[type="range"] {
     </div>
 
     <div class="window-content" style="display:block;background:#111">
-        <iframe
-            src="Resources/AppBase/Movium/index.html"
-            title="Movium"
-            style="width:100%;height:100%;border:0;background:#111">
-        </iframe>
+        <iframe src="Resources/AppBase/Movium/index.html" title="Movium" style="width:100%;height:100%;border:0;background:#111"></iframe>
     </div>
 </div>
 
@@ -709,7 +1117,6 @@ input[type="range"] {
 <div class="window" id="musifyWindow">
     <div class="titlebar">
         <span class="window-title">Musify</span>
-
         <div class="window-controls">
             <button onclick="minimizeWindow('musifyWindow')">−</button>
             <button onclick="maximizeWindow('musifyWindow')">□</button>
@@ -718,11 +1125,7 @@ input[type="range"] {
     </div>
 
     <div class="window-content" style="display:block;background:#111">
-        <iframe
-            src="https://timmers437283.github.io/Musify/"
-            title="Musify"
-            style="width:100%;height:100%;border:0;background:#111">
-        </iframe>
+        <iframe src="https://timmers437283.github.io/Musify/" title="Musify" style="width:100%;height:100%;border:0;background:#111"></iframe>
     </div>
 </div>
 
@@ -731,7 +1134,6 @@ input[type="range"] {
 <div class="window" id="celioWindow">
     <div class="titlebar">
         <span class="window-title">Celio</span>
-
         <div class="window-controls">
             <button onclick="minimizeWindow('celioWindow')">−</button>
             <button onclick="maximizeWindow('celioWindow')">□</button>
@@ -739,15 +1141,11 @@ input[type="range"] {
         </div>
     </div>
 
-    <div class="window-content" style="display:block;background:#111;">
-        <iframe
-            src="https://timmers437283.github.io/Celio/"
-            title="Celio"
-            style="width:100%;height:100%;border:0;background:#111;"
-        ></iframe>
+    <div class="window-content" style="display:block;background:#111">
+        <iframe src="https://timmers437283.github.io/Celio/" title="Celio" style="width:100%;height:100%;border:0;background:#111"></iframe>
     </div>
 </div>
-    
+
 <script>
 const wallpaperElement = document.getElementById("wallpaper");
 const blurElement = document.getElementById("wallpaperBlur");
@@ -762,7 +1160,6 @@ let installedApps = [];
 
 try {
     installedApps = JSON.parse(localStorage.getItem("installedApps") || "[]");
-
     if (!Array.isArray(installedApps)) installedApps = [];
 } catch (error) {
     installedApps = [];
@@ -812,11 +1209,7 @@ const defaultWallpaper = "Windows_11.jpg";
 
 if (!installedWallpapers.includes(defaultWallpaper)) {
     installedWallpapers.push(defaultWallpaper);
-
-    localStorage.setItem(
-        "installedWallpapers",
-        JSON.stringify(installedWallpapers)
-    );
+    localStorage.setItem("installedWallpapers", JSON.stringify(installedWallpapers));
 }
 
 let currentWallpaper = localStorage.getItem("desktopWallpaper") || defaultWallpaper;
@@ -831,15 +1224,25 @@ let snapApps = localStorage.getItem("snapDesktopApps") !== "false";
 function updateClock() {
     const now = new Date();
 
-    document.getElementById("clockTime").textContent =
-        now.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "2-digit"
-        });
+    const time = now.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+    });
 
-    document.getElementById("clockDate").textContent =
+    const date = now.toLocaleDateString([], {
+        month: "numeric",
+        day: "numeric",
+        year: "numeric"
+    });
+
+    document.getElementById("clockTime").textContent = time;
+    document.getElementById("clockDate").textContent = date;
+
+    document.getElementById("panelTime").textContent = time;
+    document.getElementById("panelDate").textContent =
         now.toLocaleDateString([], {
-            month: "numeric",
+            weekday: "long",
+            month: "long",
             day: "numeric",
             year: "numeric"
         });
@@ -847,6 +1250,351 @@ function updateClock() {
 
 updateClock();
 setInterval(updateClock, 1000);
+
+/* CALENDAR */
+
+let calendarDate = new Date();
+let selectedCalendarDate = new Date();
+
+function formatCalendarDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+function nthWeekday(year, month, weekday, n) {
+    const date = new Date(year, month, 1);
+    const offset = (weekday - date.getDay() + 7) % 7;
+    return new Date(year, month, 1 + offset + (n - 1) * 7);
+}
+
+function lastWeekday(year, month, weekday) {
+    const date = new Date(year, month + 1, 0);
+    const offset = (date.getDay() - weekday + 7) % 7;
+    return new Date(year, month + 1, -offset);
+}
+
+function getHolidayDates(year) {
+    const holidays = {};
+
+    function add(date, name, description) {
+        holidays[formatCalendarDate(date)] = { name, description };
+    }
+
+    add(new Date(year, 0, 1), "New Year's Day", "Federal holiday");
+    add(nthWeekday(year, 0, 1, 3), "Martin Luther King Jr. Day", "Federal holiday");
+    add(nthWeekday(year, 1, 1, 3), "Presidents' Day", "Federal holiday");
+    add(lastWeekday(year, 4, 1), "Memorial Day", "Federal holiday");
+    add(new Date(year, 5, 19), "Juneteenth", "Federal holiday");
+    add(new Date(year, 6, 4), "Independence Day", "Federal holiday");
+    add(nthWeekday(year, 8, 1, 1), "Labor Day", "Federal holiday");
+    add(nthWeekday(year, 9, 1, 2), "Columbus Day", "Federal holiday");
+    add(new Date(year, 10, 11), "Veterans Day", "Federal holiday");
+    add(nthWeekday(year, 10, 4, 4), "Thanksgiving Day", "Federal holiday");
+    add(new Date(year, 11, 25), "Christmas Day", "Federal holiday");
+
+    return holidays;
+}
+
+function getEventsForDate(date) {
+    const year = date.getFullYear();
+    const holidays = getHolidayDates(year);
+    const key = formatCalendarDate(date);
+
+    if (holidays[key]) return [holidays[key]];
+
+    return [];
+}
+
+function renderCalendar() {
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+
+    document.getElementById("calendarMonth").textContent =
+        calendarDate.toLocaleDateString([], {
+            month: "long",
+            year: "numeric"
+        });
+
+    const grid = document.getElementById("calendarDays");
+    grid.innerHTML = "";
+
+    const firstDay = new Date(year, month, 1);
+    const startDay = firstDay.getDay();
+    const startDate = new Date(year, month, 1 - startDay);
+
+    for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+
+        const key = formatCalendarDate(date);
+        const todayKey = formatCalendarDate(new Date());
+        const selectedKey = formatCalendarDate(selectedCalendarDate);
+        const holidays = getHolidayDates(date.getFullYear());
+
+        const day = document.createElement("div");
+        day.className = "calendar-day";
+        day.textContent = date.getDate();
+
+        if (date.getMonth() !== month) {
+            day.classList.add("other-month");
+        }
+
+        if (key === todayKey) {
+            day.classList.add("today");
+        }
+
+        if (key === selectedKey) {
+            day.classList.add("selected");
+        }
+
+        if (holidays[key]) {
+            const dot = document.createElement("span");
+            dot.className = "holiday-dot";
+            day.appendChild(dot);
+            day.title = holidays[key].name;
+        }
+
+        day.addEventListener("click", () => {
+            selectedCalendarDate = new Date(date);
+
+            if (date.getMonth() !== calendarDate.getMonth()) {
+                calendarDate = new Date(date.getFullYear(), date.getMonth(), 1);
+            }
+
+            renderCalendar();
+            renderCalendarEvents();
+        });
+
+        grid.appendChild(day);
+    }
+
+    renderCalendarEvents();
+}
+
+function renderCalendarEvents() {
+    const list = document.getElementById("calendarEventList");
+    const events = getEventsForDate(selectedCalendarDate);
+
+    list.innerHTML = "";
+
+    if (events.length === 0) {
+        list.innerHTML = '<div class="no-events">No holidays or events for this day.</div>';
+        return;
+    }
+
+    events.forEach(event => {
+        const item = document.createElement("div");
+        item.className = "calendar-event";
+
+        const marker = document.createElement("div");
+        marker.className = "event-marker";
+
+        const content = document.createElement("div");
+
+        const name = document.createElement("div");
+        name.className = "event-name";
+        name.textContent = event.name;
+
+        const description = document.createElement("div");
+        description.className = "event-description";
+        description.textContent = event.description;
+
+        content.append(name, description);
+        item.append(marker, content);
+        list.appendChild(item);
+    });
+}
+
+function changeCalendarMonth(amount) {
+    calendarDate = new Date(
+        calendarDate.getFullYear(),
+        calendarDate.getMonth() + amount,
+        1
+    );
+
+    selectedCalendarDate = new Date(calendarDate);
+    renderCalendar();
+}
+
+function toggleCalendar() {
+    const panel = document.getElementById("calendarPanel");
+    const clock = document.getElementById("taskbarClock");
+
+    panel.classList.toggle("open");
+    clock.classList.toggle("selected", panel.classList.contains("open"));
+
+    if (panel.classList.contains("open")) {
+        calendarDate = new Date();
+        selectedCalendarDate = new Date();
+        updateClock();
+        renderCalendar();
+    }
+}
+
+document.addEventListener("click", event => {
+    const panel = document.getElementById("calendarPanel");
+    const clock = document.getElementById("taskbarClock");
+
+    if (
+        panel.classList.contains("open") &&
+        !panel.contains(event.target) &&
+        !clock.contains(event.target)
+    ) {
+        panel.classList.remove("open");
+        clock.classList.remove("selected");
+    }
+});
+
+renderCalendar();
+
+/* WEATHER */
+
+const savedWeather = JSON.parse(
+    localStorage.getItem("desktopWeatherLocation") || "null"
+);
+
+let weatherCoordinates = savedWeather || null;
+
+function weatherCodeInfo(code) {
+    if (code === 0) return ["Clear sky", "☀"];
+    if (code === 1) return ["Mostly clear", "🌤"];
+    if (code === 2) return ["Partly cloudy", "⛅"];
+    if (code === 3) return ["Overcast", "☁"];
+    if ([45, 48].includes(code)) return ["Foggy", "🌫"];
+    if ([51, 53, 55, 56, 57].includes(code)) return ["Drizzle", "🌦"];
+    if ([61, 63, 65, 66, 67].includes(code)) return ["Rain", "🌧"];
+    if ([71, 73, 75, 77].includes(code)) return ["Snow", "❄"];
+    if ([80, 81, 82].includes(code)) return ["Rain showers", "🌧"];
+    if ([85, 86].includes(code)) return ["Snow showers", "🌨"];
+    if ([95, 96, 99].includes(code)) return ["Thunderstorm", "⛈"];
+    return ["Unknown conditions", "☁"];
+}
+
+async function loadWeather(latitude, longitude, locationName) {
+    const description = document.getElementById("weatherDescription");
+    description.textContent = "Loading weather...";
+
+    try {
+        const url =
+            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}` +
+            `&longitude=${longitude}` +
+            `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m` +
+            `&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) throw new Error("Weather request failed");
+
+        const data = await response.json();
+        const current = data.current;
+
+        const info = weatherCodeInfo(current.weather_code);
+
+        document.getElementById("weatherTemperature").textContent =
+            Math.round(current.temperature_2m) + "°";
+
+        document.getElementById("weatherFeels").textContent =
+            Math.round(current.apparent_temperature) + "°";
+
+        document.getElementById("weatherWind").textContent =
+            Math.round(current.wind_speed_10m) + " mph";
+
+        document.getElementById("weatherHumidity").textContent =
+            current.relative_humidity_2m + "%";
+
+        document.getElementById("weatherDescription").textContent = info[0];
+        document.getElementById("weatherIcon").textContent = info[1];
+        document.getElementById("weatherLocation").textContent = locationName;
+
+        weatherCoordinates = {
+            latitude,
+            longitude,
+            name: locationName
+        };
+
+        localStorage.setItem(
+            "desktopWeatherLocation",
+            JSON.stringify(weatherCoordinates)
+        );
+    } catch (error) {
+        description.textContent = "Could not load weather";
+    }
+}
+
+async function searchWeather() {
+    const input = document.getElementById("weatherCityInput");
+    const city = input.value.trim();
+
+    if (!city) return;
+
+    document.getElementById("weatherDescription").textContent = "Searching...";
+
+    try {
+        const url =
+            `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}` +
+            "&count=1&language=en&format=json";
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data.results || data.results.length === 0) {
+            document.getElementById("weatherDescription").textContent =
+                "Location not found";
+            return;
+        }
+
+        const place = data.results[0];
+
+        const name = [place.name, place.admin1, place.country]
+            .filter(Boolean)
+            .join(", ");
+
+        await loadWeather(place.latitude, place.longitude, name);
+    } catch (error) {
+        document.getElementById("weatherDescription").textContent =
+            "Search failed";
+    }
+}
+
+function useMyLocation() {
+    if (!navigator.geolocation) {
+        document.getElementById("weatherDescription").textContent =
+            "Location is not supported";
+        return;
+    }
+
+    document.getElementById("weatherDescription").textContent =
+        "Getting your location...";
+
+    navigator.geolocation.getCurrentPosition(
+        position => {
+            loadWeather(
+                position.coords.latitude,
+                position.coords.longitude,
+                "Your location"
+            );
+        },
+        () => {
+            document.getElementById("weatherDescription").textContent =
+                "Location permission denied";
+        }
+    );
+}
+
+document.getElementById("weatherCityInput").addEventListener("keydown", event => {
+    if (event.key === "Enter") searchWeather();
+});
+
+if (weatherCoordinates && weatherCoordinates.latitude != null) {
+    loadWeather(
+        weatherCoordinates.latitude,
+        weatherCoordinates.longitude,
+        weatherCoordinates.name || "Saved location"
+    );
+}
 
 /* WALLPAPER */
 
@@ -868,7 +1616,6 @@ function applyColor() {
 
 function applyWallpaper(filename) {
     currentWallpaper = filename;
-
     localStorage.setItem("desktopWallpaper", filename);
 
     if (filename === "__solid__") {
@@ -899,7 +1646,6 @@ function applyWallpaper(filename) {
 
 function useSolidColor() {
     currentWallpaper = "__solid__";
-
     localStorage.setItem("desktopWallpaper", "__solid__");
 
     wallpaperElement.innerHTML = "";
@@ -909,33 +1655,26 @@ function useSolidColor() {
 
 function applyBlur() {
     blurElement.style.backdropFilter = `blur(${currentBlur}px)`;
-
     document.getElementById("blurSlider").value = currentBlur;
 }
 
 document.getElementById("backgroundColor").addEventListener("input", event => {
     currentColor = event.target.value;
-
     localStorage.setItem("desktopColor", currentColor);
-
     useSolidColor();
 });
 
 document.getElementById("blurSlider").addEventListener("input", event => {
     currentBlur = event.target.value;
-
     localStorage.setItem("desktopBlur", currentBlur);
-
     applyBlur();
 });
 
 const snapAppsToggle = document.getElementById("snapAppsToggle");
-
 snapAppsToggle.checked = snapApps;
 
 snapAppsToggle.addEventListener("change", event => {
     snapApps = event.target.checked;
-
     localStorage.setItem("snapDesktopApps", String(snapApps));
 
     if (snapApps) applySnapToDesktopIcons();
@@ -984,10 +1723,8 @@ function createPreview(filename) {
         preview.appendChild(video);
     } else {
         const image = document.createElement("img");
-
         image.src = wallpaperPath(filename);
         image.alt = filename;
-
         preview.appendChild(image);
     }
 
@@ -1006,13 +1743,11 @@ function displayName(filename) {
 
 function renderInstalled() {
     const grid = document.getElementById("installedGrid");
-
     grid.innerHTML = "";
 
     installedWallpapers.forEach(filename => {
         const card = document.createElement("div");
         card.className = "wallpaper-card";
-
         card.appendChild(createPreview(filename));
 
         const info = document.createElement("div");
@@ -1052,14 +1787,8 @@ function snapIconPosition(left, top, icon) {
     const maxTop = Math.max(0, window.innerHeight - 48 - icon.offsetHeight);
 
     return {
-        left: Math.max(
-            0,
-            Math.min(maxLeft, 20 + Math.round((left - 20) / stepX) * stepX)
-        ),
-        top: Math.max(
-            0,
-            Math.min(maxTop, 20 + Math.round((top - 20) / stepY) * stepY)
-        )
+        left: Math.max(0, Math.min(maxLeft, 20 + Math.round((left - 20) / stepX) * stepX)),
+        top: Math.max(0, Math.min(maxTop, 20 + Math.round((top - 20) / stepY) * stepY))
     };
 }
 
@@ -1080,7 +1809,6 @@ function applySnapToDesktopIcons() {
         ".desktop-icon[data-desktop-id], #desktopApps .desktop-icon"
     ).forEach(icon => {
         const id = icon.dataset.desktopId || icon.dataset.appId;
-
         if (!id) return;
 
         const position = snapIconPosition(
@@ -1111,7 +1839,6 @@ function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
 
     if (snapApps) {
         const snapped = snapIconPosition(initialLeft, initialTop, icon);
-
         initialLeft = snapped.left;
         initialTop = snapped.top;
     }
@@ -1130,10 +1857,8 @@ function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
 
         startX = event.clientX;
         startY = event.clientY;
-
         startLeft = parseFloat(icon.style.left) || 0;
         startTop = parseFloat(icon.style.top) || 0;
-
         moved = false;
 
         icon.setPointerCapture(event.pointerId);
@@ -1153,17 +1878,10 @@ function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
         if (!moved) return;
 
         const maxLeft = Math.max(0, window.innerWidth - icon.offsetWidth);
+        const maxTop = Math.max(0, window.innerHeight - 48 - icon.offsetHeight);
 
-        const maxTop = Math.max(
-            0,
-            window.innerHeight - 48 - icon.offsetHeight
-        );
-
-        icon.style.left =
-            Math.max(0, Math.min(maxLeft, startLeft + dx)) + "px";
-
-        icon.style.top =
-            Math.max(0, Math.min(maxTop, startTop + dy)) + "px";
+        icon.style.left = Math.max(0, Math.min(maxLeft, startLeft + dx)) + "px";
+        icon.style.top = Math.max(0, Math.min(maxTop, startTop + dy)) + "px";
     });
 
     icon.addEventListener("pointerup", event => {
@@ -1186,7 +1904,6 @@ function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
             }
 
             saveDesktopIconPosition(id, icon);
-
             icon.dataset.justDragged = "true";
 
             setTimeout(() => {
@@ -1207,25 +1924,21 @@ function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
 
 function renderDesktopApps() {
     const container = document.getElementById("desktopApps");
-
     container.innerHTML = "";
 
     availableApps.forEach((app, index) => {
         if (!installedApps.includes(app.id)) return;
 
         const icon = document.createElement("div");
-
         icon.className = "desktop-icon";
         icon.dataset.appId = app.id;
         icon.title = "Click to open " + app.name;
 
         const image = document.createElement("img");
-
         image.src = app.icon;
         image.alt = app.name;
 
         const label = document.createElement("span");
-
         label.textContent = app.name;
 
         icon.append(image, label);
@@ -1245,7 +1958,6 @@ function renderDesktopApps() {
 
 function renderApps() {
     const grid = document.getElementById("appsGrid");
-
     grid.innerHTML = "";
 
     availableApps.forEach(app => {
@@ -1258,7 +1970,6 @@ function renderApps() {
         preview.className = "app-preview";
 
         const previewImage = document.createElement("img");
-
         previewImage.src = app.preview;
         previewImage.alt = app.name + " preview";
         previewImage.loading = "lazy";
@@ -1272,20 +1983,17 @@ function renderApps() {
         heading.className = "app-heading";
 
         const appIcon = document.createElement("img");
-
         appIcon.className = "app-icon";
         appIcon.src = app.icon;
         appIcon.alt = "";
 
         const name = document.createElement("div");
-
         name.className = "wallpaper-name";
         name.textContent = app.name;
 
         heading.append(appIcon, name);
 
         const button = document.createElement("button");
-
         button.textContent = installed ? "Installed" : "Install";
         button.disabled = installed;
 
@@ -1294,7 +2002,6 @@ function renderApps() {
 
         const fill = document.createElement("div");
         fill.className = "progress-fill";
-
         progress.appendChild(fill);
 
         button.onclick = () => {
@@ -1302,7 +2009,6 @@ function renderApps() {
 
             button.disabled = true;
             button.textContent = "Installing...";
-
             progress.style.display = "block";
 
             const duration = 200 + Math.random() * 400;
@@ -1310,7 +2016,6 @@ function renderApps() {
 
             function animate(now) {
                 const amount = Math.min((now - start) / duration, 1);
-
                 fill.style.width = (amount * 100) + "%";
 
                 if (amount < 1) {
@@ -1332,7 +2037,6 @@ function renderApps() {
         };
 
         info.append(heading, button, progress);
-
         card.append(preview, info);
         grid.appendChild(card);
     });
@@ -1340,7 +2044,6 @@ function renderApps() {
 
 function renderStore() {
     const grid = document.getElementById("storeGrid");
-
     grid.innerHTML = "";
 
     wallpaperFiles.forEach(filename => {
@@ -1350,7 +2053,6 @@ function renderStore() {
 
         const card = document.createElement("div");
         card.className = "wallpaper-card";
-
         card.appendChild(createPreview(filename));
 
         const info = document.createElement("div");
@@ -1361,7 +2063,6 @@ function renderStore() {
         name.textContent = displayName(filename);
 
         const button = document.createElement("button");
-
         button.textContent = installed ? "Installed" : "Install";
         button.disabled = installed;
 
@@ -1370,7 +2071,6 @@ function renderStore() {
 
         const fill = document.createElement("div");
         fill.className = "progress-fill";
-
         progress.appendChild(fill);
 
         button.onclick = () => {
@@ -1378,7 +2078,6 @@ function renderStore() {
 
             button.disabled = true;
             button.textContent = "Installing...";
-
             progress.style.display = "block";
 
             const duration = 200 + Math.random() * 400;
@@ -1386,7 +2085,6 @@ function renderStore() {
 
             function animateProgress(now) {
                 const amount = Math.min((now - start) / duration, 1);
-
                 fill.style.width = (amount * 100) + "%";
 
                 if (amount < 1) {
@@ -1408,7 +2106,6 @@ function renderStore() {
         };
 
         info.append(name, button, progress);
-
         card.appendChild(info);
         grid.appendChild(card);
     });
@@ -1422,9 +2119,7 @@ async function loadWallpapers() {
             cache: "no-store"
         });
 
-        if (!response.ok) {
-            throw new Error("Could not load wallpapers.json");
-        }
+        if (!response.ok) throw new Error("Could not load wallpapers.json");
 
         const files = await response.json();
 
@@ -1437,11 +2132,8 @@ async function loadWallpapers() {
             /\.(jpg|jpeg|png|webp|mp4|webm|ogg)$/i.test(filename)
         );
 
-        console.log("Loaded wallpapers:", wallpaperFiles);
-
         renderStore();
         renderInstalled();
-
     } catch (error) {
         console.error("Wallpaper loading failed:", error);
 
@@ -1455,18 +2147,11 @@ async function loadWallpapers() {
 function showStoreTab(tab) {
     const apps = tab === "apps";
 
-    document.getElementById("appsPage").style.display =
-        apps ? "block" : "none";
-
-    document.getElementById("wallpapersPage").style.display =
-        apps ? "none" : "block";
+    document.getElementById("appsPage").style.display = apps ? "block" : "none";
+    document.getElementById("wallpapersPage").style.display = apps ? "none" : "block";
 
     document.getElementById("appsTab").classList.toggle("selected", apps);
-
-    document.getElementById("wallpapersTab").classList.toggle(
-        "selected",
-        !apps
-    );
+    document.getElementById("wallpapersTab").classList.toggle("selected", !apps);
 
     if (apps) renderApps();
     else renderStore();
@@ -1478,23 +2163,17 @@ let windowOpenCount = 0;
 
 function openWindow(id) {
     const win = document.getElementById(id);
-
     if (!win) return;
 
     const wasOpen = win.classList.contains("active");
-
     win.classList.add("active");
 
     if (!wasOpen && !win.classList.contains("maximized")) {
         const offset = (windowOpenCount % 7) * 28;
-
         const rect = win.getBoundingClientRect();
 
-        const width = rect.width ||
-            Math.min(760, window.innerWidth - 30);
-
-        const height = rect.height ||
-            Math.min(520, window.innerHeight - 75);
+        const width = rect.width || Math.min(760, window.innerWidth - 30);
+        const height = rect.height || Math.min(520, window.innerHeight - 75);
 
         win.style.transform = "none";
 
@@ -1530,42 +2209,28 @@ function minimizeWindow(id) {
 
 function maximizeWindow(id) {
     const win = document.getElementById(id);
-
     win.classList.toggle("maximized");
-
     win.style.zIndex = ++highestWindow;
 }
 
 /* WINDOW RESIZING AND DRAGGING */
 
 document.querySelectorAll(".window").forEach(win => {
-
     const edges = [
-        "top",
-        "bottom",
-        "left",
-        "right",
-        "top-left",
-        "top-right",
-        "bottom-left",
-        "bottom-right"
+        "top", "bottom", "left", "right",
+        "top-left", "top-right", "bottom-left", "bottom-right"
     ];
 
     edges.forEach(edge => {
         const handle = document.createElement("div");
-
         handle.className = "window-edge " + edge;
-
         win.appendChild(handle);
 
         let resizing = false;
-
         let startX = 0;
         let startY = 0;
-
         let startLeft = 0;
         let startTop = 0;
-
         let startWidth = 0;
         let startHeight = 0;
 
@@ -1585,18 +2250,14 @@ document.querySelectorAll(".window").forEach(win => {
 
             startX = event.clientX;
             startY = event.clientY;
-
             startLeft = rect.left;
             startTop = rect.top;
-
             startWidth = rect.width;
             startHeight = rect.height;
 
             win.style.transform = "none";
-
             win.style.left = startLeft + "px";
             win.style.top = startTop + "px";
-
             win.style.zIndex = ++highestWindow;
 
             handle.setPointerCapture(event.pointerId);
@@ -1613,56 +2274,26 @@ document.querySelectorAll(".window").forEach(win => {
 
             let left = startLeft;
             let top = startTop;
-
             let right = startLeft + startWidth;
             let bottom = startTop + startHeight;
 
-            if (edge.includes("left")) {
-                left = startLeft + dx;
-            }
+            if (edge.includes("left")) left = startLeft + dx;
+            if (edge.includes("right")) right = startLeft + startWidth + dx;
+            if (edge.includes("top")) top = startTop + dy;
+            if (edge.includes("bottom")) bottom = startTop + startHeight + dy;
 
-            if (edge.includes("right")) {
-                right = startLeft + startWidth + dx;
-            }
-
-            if (edge.includes("top")) {
-                top = startTop + dy;
-            }
-
-            if (edge.includes("bottom")) {
-                bottom = startTop + startHeight + dy;
-            }
-
-            left = Math.max(
-                0,
-                Math.min(left, window.innerWidth - minWidth)
-            );
-
-            top = Math.max(
-                0,
-                Math.min(top, window.innerHeight - 48 - minHeight)
-            );
-
-            right = Math.max(
-                left + minWidth,
-                Math.min(right, window.innerWidth)
-            );
-
-            bottom = Math.max(
-                top + minHeight,
-                Math.min(bottom, window.innerHeight - 48)
-            );
+            left = Math.max(0, Math.min(left, window.innerWidth - minWidth));
+            top = Math.max(0, Math.min(top, window.innerHeight - 48 - minHeight));
+            right = Math.max(left + minWidth, Math.min(right, window.innerWidth));
+            bottom = Math.max(top + minHeight, Math.min(bottom, window.innerHeight - 48));
 
             win.style.left = left + "px";
             win.style.top = top + "px";
-
             win.style.width = (right - left) + "px";
             win.style.height = (bottom - top) + "px";
         });
 
-        const stopResize = () => {
-            resizing = false;
-        };
+        const stopResize = () => resizing = false;
 
         handle.addEventListener("pointerup", stopResize);
         handle.addEventListener("pointercancel", stopResize);
@@ -1683,7 +2314,6 @@ document.querySelectorAll(".window").forEach(win => {
         if (event.button !== 0) return;
 
         dragging = true;
-
         win.style.zIndex = ++highestWindow;
 
         const rect = win.getBoundingClientRect();
@@ -1692,7 +2322,6 @@ document.querySelectorAll(".window").forEach(win => {
         offsetY = event.clientY - rect.top;
 
         win.style.transform = "none";
-
         win.style.left = rect.left + "px";
         win.style.top = rect.top + "px";
 
@@ -1705,27 +2334,15 @@ document.querySelectorAll(".window").forEach(win => {
         let x = event.clientX - offsetX;
         let y = event.clientY - offsetY;
 
-        x = Math.max(
-            0,
-            Math.min(x, window.innerWidth - win.offsetWidth)
-        );
-
-        y = Math.max(
-            0,
-            Math.min(y, window.innerHeight - 80)
-        );
+        x = Math.max(0, Math.min(x, window.innerWidth - win.offsetWidth));
+        y = Math.max(0, Math.min(y, window.innerHeight - 80));
 
         win.style.left = x + "px";
         win.style.top = y + "px";
     });
 
-    titlebar.addEventListener("pointerup", () => {
-        dragging = false;
-    });
-
-    titlebar.addEventListener("pointercancel", () => {
-        dragging = false;
-    });
+    titlebar.addEventListener("pointerup", () => dragging = false);
+    titlebar.addEventListener("pointercancel", () => dragging = false);
 });
 
 /* INITIALIZE */
@@ -1756,7 +2373,6 @@ if (currentWallpaper === "__solid__") {
 }
 
 loadWallpapers();
-
 </script>
 
 </body>

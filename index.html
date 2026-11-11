@@ -316,7 +316,7 @@ input[type="range"] {
     transform: translateX(18px);
 }
 
-/* WINDOW RESIZE EDGES */
+/* WINDOW RESIZING */
 
 .window-edge {
     position: absolute;
@@ -332,13 +332,8 @@ input[type="range"] {
     cursor: ew-resize;
 }
 
-.window-edge.left {
-    left: 0;
-}
-
-.window-edge.right {
-    right: 0;
-}
+.window-edge.left { left: 0; }
+.window-edge.right { right: 0; }
 
 .window-edge.top,
 .window-edge.bottom {
@@ -348,13 +343,8 @@ input[type="range"] {
     cursor: ns-resize;
 }
 
-.window-edge.top {
-    top: 0;
-}
-
-.window-edge.bottom {
-    bottom: 0;
-}
+.window-edge.top { top: 0; }
+.window-edge.bottom { bottom: 0; }
 
 .window-edge.top-left,
 .window-edge.top-right,
@@ -392,7 +382,7 @@ input[type="range"] {
     display: none;
 }
 
-/* OTHER CONTENT */
+/* WALLPAPERS AND STORE */
 
 .wallpaper-grid {
     display: grid;
@@ -614,6 +604,8 @@ input[type="range"] {
 
 </div>
 
+<!-- SETTINGS -->
+
 <div class="window" id="settingsWindow">
     <div class="titlebar">
         <span class="window-title">Settings</span>
@@ -657,6 +649,8 @@ input[type="range"] {
     </div>
 </div>
 
+<!-- APP STORE -->
+
 <div class="window" id="storeWindow">
     <div class="titlebar">
         <span class="window-title">App Store</span>
@@ -689,6 +683,8 @@ input[type="range"] {
     </div>
 </div>
 
+<!-- MOVIUM -->
+
 <div class="window" id="moviumWindow">
     <div class="titlebar">
         <span class="window-title">Movium</span>
@@ -700,7 +696,33 @@ input[type="range"] {
     </div>
 
     <div class="window-content" style="display:block;background:#111">
-        <iframe src="Resources/AppBase/Movium/index.html" title="Movium" style="width:100%;height:100%;border:0;background:#111"></iframe>
+        <iframe
+            src="Resources/AppBase/Movium/index.html"
+            title="Movium"
+            style="width:100%;height:100%;border:0;background:#111">
+        </iframe>
+    </div>
+</div>
+
+<!-- MUSIFY -->
+
+<div class="window" id="musifyWindow">
+    <div class="titlebar">
+        <span class="window-title">Musify</span>
+
+        <div class="window-controls">
+            <button onclick="minimizeWindow('musifyWindow')">−</button>
+            <button onclick="maximizeWindow('musifyWindow')">□</button>
+            <button class="close" onclick="closeWindow('musifyWindow')">×</button>
+        </div>
+    </div>
+
+    <div class="window-content" style="display:block;background:#111">
+        <iframe
+            src="https://timmers437283.github.io/Musify/"
+            title="Musify"
+            style="width:100%;height:100%;border:0;background:#111">
+        </iframe>
     </div>
 </div>
 
@@ -718,17 +740,30 @@ let installedApps = [];
 
 try {
     installedApps = JSON.parse(localStorage.getItem("installedApps") || "[]");
+
     if (!Array.isArray(installedApps)) installedApps = [];
 } catch (error) {
     installedApps = [];
 }
 
-const availableApps = [{
-    id: "movium",
-    name: "Movium",
-    icon: "Resources/Icons/Movium.png",
-    preview: "Resources/AppBase/Movium/Preview.png"
-}];
+/* AVAILABLE APPS */
+
+const availableApps = [
+    {
+        id: "movium",
+        name: "Movium",
+        icon: "Resources/Icons/Movium.png",
+        preview: "Resources/AppBase/Movium/Preview.png",
+        windowId: "moviumWindow"
+    },
+    {
+        id: "musify",
+        name: "Musify",
+        icon: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/Musify/Musify.png",
+        preview: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/Musify/Musify.png",
+        windowId: "musifyWindow"
+    }
+];
 
 let desktopIconPositions = {};
 
@@ -748,6 +783,7 @@ const defaultWallpaper = "Windows_11.jpg";
 
 if (!installedWallpapers.includes(defaultWallpaper)) {
     installedWallpapers.push(defaultWallpaper);
+
     localStorage.setItem(
         "installedWallpapers",
         JSON.stringify(installedWallpapers)
@@ -803,6 +839,7 @@ function applyColor() {
 
 function applyWallpaper(filename) {
     currentWallpaper = filename;
+
     localStorage.setItem("desktopWallpaper", filename);
 
     if (filename === "__solid__") {
@@ -833,6 +870,7 @@ function applyWallpaper(filename) {
 
 function useSolidColor() {
     currentWallpaper = "__solid__";
+
     localStorage.setItem("desktopWallpaper", "__solid__");
 
     wallpaperElement.innerHTML = "";
@@ -842,18 +880,23 @@ function useSolidColor() {
 
 function applyBlur() {
     blurElement.style.backdropFilter = `blur(${currentBlur}px)`;
+
     document.getElementById("blurSlider").value = currentBlur;
 }
 
 document.getElementById("backgroundColor").addEventListener("input", event => {
     currentColor = event.target.value;
+
     localStorage.setItem("desktopColor", currentColor);
+
     useSolidColor();
 });
 
 document.getElementById("blurSlider").addEventListener("input", event => {
     currentBlur = event.target.value;
+
     localStorage.setItem("desktopBlur", currentBlur);
+
     applyBlur();
 });
 
@@ -863,6 +906,7 @@ snapAppsToggle.checked = snapApps;
 
 snapAppsToggle.addEventListener("change", event => {
     snapApps = event.target.checked;
+
     localStorage.setItem("snapDesktopApps", String(snapApps));
 
     if (snapApps) applySnapToDesktopIcons();
@@ -911,8 +955,10 @@ function createPreview(filename) {
         preview.appendChild(video);
     } else {
         const image = document.createElement("img");
+
         image.src = wallpaperPath(filename);
         image.alt = filename;
+
         preview.appendChild(image);
     }
 
@@ -931,6 +977,7 @@ function displayName(filename) {
 
 function renderInstalled() {
     const grid = document.getElementById("installedGrid");
+
     grid.innerHTML = "";
 
     installedWallpapers.forEach(filename => {
@@ -1004,6 +1051,7 @@ function applySnapToDesktopIcons() {
         ".desktop-icon[data-desktop-id], #desktopApps .desktop-icon"
     ).forEach(icon => {
         const id = icon.dataset.desktopId || icon.dataset.appId;
+
         if (!id) return;
 
         const position = snapIconPosition(
@@ -1034,6 +1082,7 @@ function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
 
     if (snapApps) {
         const snapped = snapIconPosition(initialLeft, initialTop, icon);
+
         initialLeft = snapped.left;
         initialTop = snapped.top;
     }
@@ -1052,8 +1101,10 @@ function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
 
         startX = event.clientX;
         startY = event.clientY;
+
         startLeft = parseFloat(icon.style.left) || 0;
         startTop = parseFloat(icon.style.top) || 0;
+
         moved = false;
 
         icon.setPointerCapture(event.pointerId);
@@ -1073,6 +1124,7 @@ function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
         if (!moved) return;
 
         const maxLeft = Math.max(0, window.innerWidth - icon.offsetWidth);
+
         const maxTop = Math.max(
             0,
             window.innerHeight - 48 - icon.offsetHeight
@@ -1126,21 +1178,25 @@ function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
 
 function renderDesktopApps() {
     const container = document.getElementById("desktopApps");
+
     container.innerHTML = "";
 
     availableApps.forEach((app, index) => {
         if (!installedApps.includes(app.id)) return;
 
         const icon = document.createElement("div");
+
         icon.className = "desktop-icon";
         icon.dataset.appId = app.id;
         icon.title = "Click to open " + app.name;
 
         const image = document.createElement("img");
+
         image.src = app.icon;
         image.alt = app.name;
 
         const label = document.createElement("span");
+
         label.textContent = app.name;
 
         icon.append(image, label);
@@ -1151,7 +1207,7 @@ function renderDesktopApps() {
             app.id,
             20,
             125 + index * 100,
-            () => openWindow("moviumWindow")
+            () => openWindow(app.windowId)
         );
     });
 }
@@ -1160,6 +1216,7 @@ function renderDesktopApps() {
 
 function renderApps() {
     const grid = document.getElementById("appsGrid");
+
     grid.innerHTML = "";
 
     availableApps.forEach(app => {
@@ -1172,6 +1229,7 @@ function renderApps() {
         preview.className = "app-preview";
 
         const previewImage = document.createElement("img");
+
         previewImage.src = app.preview;
         previewImage.alt = app.name + " preview";
         previewImage.loading = "lazy";
@@ -1185,17 +1243,20 @@ function renderApps() {
         heading.className = "app-heading";
 
         const appIcon = document.createElement("img");
+
         appIcon.className = "app-icon";
         appIcon.src = app.icon;
         appIcon.alt = "";
 
         const name = document.createElement("div");
+
         name.className = "wallpaper-name";
         name.textContent = app.name;
 
         heading.append(appIcon, name);
 
         const button = document.createElement("button");
+
         button.textContent = installed ? "Installed" : "Install";
         button.disabled = installed;
 
@@ -1212,6 +1273,7 @@ function renderApps() {
 
             button.disabled = true;
             button.textContent = "Installing...";
+
             progress.style.display = "block";
 
             const duration = 200 + Math.random() * 400;
@@ -1241,6 +1303,7 @@ function renderApps() {
         };
 
         info.append(heading, button, progress);
+
         card.append(preview, info);
         grid.appendChild(card);
     });
@@ -1248,6 +1311,7 @@ function renderApps() {
 
 function renderStore() {
     const grid = document.getElementById("storeGrid");
+
     grid.innerHTML = "";
 
     wallpaperFiles.forEach(filename => {
@@ -1268,6 +1332,7 @@ function renderStore() {
         name.textContent = displayName(filename);
 
         const button = document.createElement("button");
+
         button.textContent = installed ? "Installed" : "Install";
         button.disabled = installed;
 
@@ -1284,6 +1349,7 @@ function renderStore() {
 
             button.disabled = true;
             button.textContent = "Installing...";
+
             progress.style.display = "block";
 
             const duration = 200 + Math.random() * 400;
@@ -1313,12 +1379,13 @@ function renderStore() {
         };
 
         info.append(name, button, progress);
+
         card.appendChild(info);
         grid.appendChild(card);
     });
 }
 
-/* LOAD WALLPAPER LIST */
+/* LOAD WALLPAPERS */
 
 async function loadWallpapers() {
     try {
@@ -1366,7 +1433,11 @@ function showStoreTab(tab) {
         apps ? "none" : "block";
 
     document.getElementById("appsTab").classList.toggle("selected", apps);
-    document.getElementById("wallpapersTab").classList.toggle("selected", !apps);
+
+    document.getElementById("wallpapersTab").classList.toggle(
+        "selected",
+        !apps
+    );
 
     if (apps) renderApps();
     else renderStore();
@@ -1378,6 +1449,7 @@ let windowOpenCount = 0;
 
 function openWindow(id) {
     const win = document.getElementById(id);
+
     if (!win) return;
 
     const wasOpen = win.classList.contains("active");
@@ -1386,6 +1458,7 @@ function openWindow(id) {
 
     if (!wasOpen && !win.classList.contains("maximized")) {
         const offset = (windowOpenCount % 7) * 28;
+
         const rect = win.getBoundingClientRect();
 
         const width = rect.width ||
@@ -1430,6 +1503,7 @@ function maximizeWindow(id) {
     const win = document.getElementById(id);
 
     win.classList.toggle("maximized");
+
     win.style.zIndex = ++highestWindow;
 }
 
@@ -1452,6 +1526,7 @@ document.querySelectorAll(".window").forEach(win => {
         const handle = document.createElement("div");
 
         handle.className = "window-edge " + edge;
+
         win.appendChild(handle);
 
         let resizing = false;
@@ -1489,8 +1564,10 @@ document.querySelectorAll(".window").forEach(win => {
             startHeight = rect.height;
 
             win.style.transform = "none";
+
             win.style.left = startLeft + "px";
             win.style.top = startTop + "px";
+
             win.style.zIndex = ++highestWindow;
 
             handle.setPointerCapture(event.pointerId);
@@ -1527,8 +1604,15 @@ document.querySelectorAll(".window").forEach(win => {
                 bottom = startTop + startHeight + dy;
             }
 
-            left = Math.max(0, Math.min(left, window.innerWidth - minWidth));
-            top = Math.max(0, Math.min(top, window.innerHeight - 48 - minHeight));
+            left = Math.max(
+                0,
+                Math.min(left, window.innerWidth - minWidth)
+            );
+
+            top = Math.max(
+                0,
+                Math.min(top, window.innerHeight - 48 - minHeight)
+            );
 
             right = Math.max(
                 left + minWidth,
@@ -1542,6 +1626,7 @@ document.querySelectorAll(".window").forEach(win => {
 
             win.style.left = left + "px";
             win.style.top = top + "px";
+
             win.style.width = (right - left) + "px";
             win.style.height = (bottom - top) + "px";
         });
@@ -1578,6 +1663,7 @@ document.querySelectorAll(".window").forEach(win => {
         offsetY = event.clientY - rect.top;
 
         win.style.transform = "none";
+
         win.style.left = rect.left + "px";
         win.style.top = rect.top + "px";
 
@@ -1627,6 +1713,7 @@ makeDesktopIconDraggable(
 
 renderApps();
 renderDesktopApps();
+
 applyBlur();
 
 if (currentWallpaper === "__solid__") {

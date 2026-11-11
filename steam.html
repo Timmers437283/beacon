@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Steam</title>
+<style>
+  :root {
+    --bg: #1b2838;
+    --bg-dark: #171a21;
+    --panel: #16202d;
+    --text: #c7d5e0;
+    --muted: #8f98a0;
+    --blue: #1a9fff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Motiva Sans", "Segoe UI", Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .topbar {
+    height: 40px; background: var(--bg-dark);
+    display: flex; align-items: center; padding: 0 16px; gap: 22px;
+    flex-shrink: 0; border-bottom: 1px solid #000;
+  }
+  .brand { font-weight: 700; letter-spacing: 2px; color: #fff; font-size: 15px; }
+  .nav { display: flex; gap: 18px; font-size: 13px; text-transform: uppercase; font-weight: 600; }
+  .nav span { color: var(--muted); cursor: default; }
+  .nav span.on { color: #fff; }
+  .layout { flex: 1; display: flex; min-height: 0; }
+  .sidebar {
+    width: 230px; background: var(--panel); border-right: 1px solid #000;
+    display: flex; flex-direction: column; flex-shrink: 0;
+  }
+  .search {
+    margin: 10px; padding: 7px 10px; background: #0e1722;
+    border: 1px solid #2a475e; border-radius: 3px; color: var(--text);
+    font-size: 13px; outline: none;
+  }
+  .search:focus { border-color: var(--blue); }
+  .side-head { padding: 8px 12px 4px; font-size: 11px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+  .side-list { overflow-y: auto; flex: 1; padding-bottom: 8px; }
+  .side-item { display: flex; align-items: center; gap: 9px; padding: 5px 12px; font-size: 13px; cursor: pointer; color: var(--muted); }
+  .side-item:hover { background: #22364b; color: #fff; }
+  .side-item img, .side-item .ph { width: 22px; height: 22px; border-radius: 2px; object-fit: cover; flex-shrink: 0; }
+  .side-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .main { flex: 1; overflow-y: auto; padding: 22px 26px; background: linear-gradient(180deg, #1b2838 0%, #14202e 100%); }
+  .main h2 { font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; }
+  .card { cursor: pointer; position: relative; transition: transform .12s ease, box-shadow .12s ease; }
+  .card:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 10px 22px rgba(0,0,0,.55); }
+  .cover { width: 100%; aspect-ratio: 1 / 1; border-radius: 3px; overflow: hidden; background: #0e1722; display: block; }
+  .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ph { display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; background: linear-gradient(135deg, #2a475e, #1b2838); }
+  .cover.ph { font-size: 44px; height: 100%; }
+  .card .name { margin-top: 6px; font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .empty { color: var(--muted); font-size: 14px; padding: 40px 0; }
+
+  .overlay {
+    position: fixed; inset: 0; z-index: 20; background: rgba(5, 10, 16, .78);
+    backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .overlay.open { display: flex; }
+  .popup {
+    width: min(760px, 100%); max-height: 100%; background: var(--bg);
+    border: 1px solid #2a475e; border-radius: 6px; box-shadow: 0 20px 60px rgba(0,0,0,.7);
+    overflow: hidden; display: flex; flex-direction: column; animation: pop .14s ease-out;
+  }
+  @keyframes pop { from { transform: scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
+  .hero { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #0e1722; flex-shrink: 0; max-height: 56vh; }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero.ph { font-size: 90px; }
+  .hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 40%; background: linear-gradient(transparent, var(--bg)); pointer-events: none; }
+  .close {
+    position: absolute; top: 10px; right: 12px; z-index: 2; width: 30px; height: 30px;
+    border: 0; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; font-size: 18px; cursor: pointer;
+  }
+  .close:hover { background: rgba(0,0,0,.85); }
+  .info { padding: 6px 24px 22px; }
+  .info h1 { font-size: 26px; color: #fff; font-weight: 600; margin-bottom: 6px; }
+  .info p { color: var(--muted); font-size: 14px; line-height: 1.5; margin-bottom: 16px; }
+  .actions { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+  .play {
+    background: linear-gradient(90deg, #47bfff 5%, #1a44c2 95%); border: 0; color: #fff;
+    font-size: 17px; font-weight: 600; padding: 11px 44px; border-radius: 3px; cursor: pointer; letter-spacing: .5px;
+  }
+  .play:hover { filter: brightness(1.15); }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; user-select: none; }
+  .check input { width: 17px; height: 17px; accent-color: var(--blue); cursor: pointer; }
+  .added { color: #5ba32b; font-size: 12px; }
+
+  .player { position: fixed; inset: 0; z-index: 30; background: #000; display: none; flex-direction: column; }
+  .player.open { display: flex; }
+  .player-bar { height: 38px; background: var(--bg-dark); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 13px; flex-shrink: 0; }
+  .player-bar button { background: #2a475e; color: #fff; border: 0; padding: 5px 14px; border-radius: 3px; cursor: pointer; }
+  .player-bar button:hover { background: #3b6a8c; }
+  .player iframe { flex: 1; border: 0; width: 100%; background: #000; }
+
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: #0e1722; }
+  ::-webkit-scrollbar-thumb { background: #2a475e; border-radius: 5px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">STEAM</div>
+  <div class="nav"><span>Store</span><span class="on">Library</span><span>Community</span></div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <input class="search" id="search" placeholder="Search games" autocomplete="off">
+    <div class="side-head">All Games (<span id="count">0</span>)</div>
+    <div class="side-list" id="sideList"></div>
+  </aside>
+  <main class="main">
+    <h2>Library</h2>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" style="display:none">No games found.</div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="popup" role="dialog" aria-modal="true">
+    <div class="hero" id="hero"><button class="close" id="closeBtn" aria-label="Close">&#x2715;</button></div>
+    <div class="info">
+      <h1 id="pTitle"></h1>
+      <p id="pDesc"></p>
+      <div class="actions">
+        <button class="play" id="playBtn">Play</button>
+        <label class="check" id="checkWrap">
+          <input type="checkbox" id="shortcutBox">
+          Add Steam Shortcut to Desktop?
+        </label>
+        <span class="added" id="addedNote" style="display:none">Shortcut already on desktop</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="player" id="player">
+  <div class="player-bar"><span id="playerTitle"></span><button id="exitBtn">Exit game</button></div>
+  <iframe id="playerFrame" allow="fullscreen; autoplay; gamepad; clipboard-write" allowfullscreen></iframe>
+</div>
+
+<script>
+window.BeaconSteam = window.BeaconSteam || {};
+
+const GAMES_DIR   = "Games/";
+const MANIFEST    = "games.json";
+const SHORTCUT_KEY = "beacon_steam_shortcuts";
+const EXTS = ["png", "jpg", "jpeg", "webp", "gif"];
+
+let games = [];
+let current = null;
+
+const $ = id => document.getElementById(id);
+const closeBtnEl = $("closeBtn");
+
+function loadShortcuts() {
+  try { return JSON.parse(localStorage.getItem(SHORTCUT_KEY)) || []; }
+  catch (e) { return []; }
+}
+function saveShortcuts(list) {
+  try { localStorage.setItem(SHORTCUT_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function hasShortcut(id) { return loadShortcuts().some(s => s.id === id); }
+
+function prettify(folder) {
+  return folder.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function findImage(folder, base, cb) {
+  let i = 0;
+  const tryNext = () => {
+    if (i >= EXTS.length) return cb(null);
+    const url = GAMES_DIR + encodeURIComponent(folder) + "/" + base + "." + EXTS[i++];
+    const img = new Image();
+    img.onload = () => cb(url);
+    img.onerror = tryNext;
+    img.src = url;
+  };
+  tryNext();
+}
+
+function placeholder(cls, title) {
+  const d = document.createElement("div");
+  d.className = cls + " ph";
+  d.textContent = (title || "?").charAt(0).toUpperCase();
+  return d;
+}
+
+function imgEl(url) {
+  const i = document.createElement("img");
+  i.src = url; i.alt = ""; i.draggable = false;
+  return i;
+}
+
+async function loadGame(folder) {
+  const game = {
+    id: folder,
+    folder,
+    title: prettify(folder),
+    description: "",
+    url: GAMES_DIR + encodeURIComponent(folder) + "/index.html",
+    small: null,
+    big: null
+  };
+  try {
+    const r = await fetch(GAMES_DIR + encodeURIComponent(folder) + "/info.json", { cache: "no-cache" });
+    if (r.ok) {
+      const info = await r.json();
+      if (info.title) game.title = info.title;
+      if (info.description) game.description = info.description;
+    }
+  } catch (e) {}
+  await new Promise(res => findImage(folder, "small", u => { game.small = u; res(); }));
+  await new Promise(res => findImage(folder, "big",   u => { game.big = u;   res(); }));
+  if (!game.small) game.small = game.big;
+  if (!game.big) game.big = game.small;
+  return game;
+}
+
+function render() {
+  const q = $("search").value.trim().toLowerCase();
+  const list = games.filter(g => g.title.toLowerCase().includes(q));
+  const grid = $("grid"), side = $("sideList");
+  grid.innerHTML = ""; side.innerHTML = "";
+  $("count").textContent = list.length;
+  $("empty").style.display = list.length ? "none" : "block";
+
+  list.forEach(g => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const cover = document.createElement("div");
+    cover.className = "cover";
+    if (g.small) cover.appendChild(imgEl(g.small));
+    else { cover.classList.add("ph"); cover.textContent = g.title.charAt(0).toUpperCase(); }
+    const name = document.createElement("div");
+    name.className = "name"; name.textContent = g.title;
+    card.append(cover, name);
+    card.onclick = () => openPopup(g);
+    grid.appendChild(card);
+
+    const row = document.createElement("div");
+    row.className = "side-item";
+    row.appendChild(g.small ? imgEl(g.small) : placeholder("", g.title));
+    const s = document.createElement("span"); s.textContent = g.title;
+    row.appendChild(s);
+    row.onclick = () => openPopup(g);
+    side.appendChild(row);
+  });
+}
+
+function openPopup(g) {
+  current = g;
+  const hero = $("hero");
+  const closeBtn = closeBtnEl;
+  hero.classList.remove("ph");
+  hero.textContent = "";
+  hero.appendChild(closeBtn);
+  if (g.big) hero.appendChild(imgEl(g.big));
+  else { hero.classList.add("ph"); hero.insertAdjacentText("afterbegin", g.title.charAt(0).toUpperCase()); }
+
+  $("pTitle").textContent = g.title;
+  $("pDesc").textContent = g.description;
+  $("pDesc").style.display = g.description ? "block" : "none";
+
+  const already = hasShortcut(g.id);
+  $("shortcutBox").checked = false;
+  $("checkWrap").style.display = already ? "none" : "flex";
+  $("addedNote").style.display = already ? "inline" : "none";
+
+  $("overlay").classList.add("open");
+}
+
+function closePopup() { $("overlay").classList.remove("open"); }
+
+function addShortcut(g) {
+  if (hasShortcut(g.id)) return;
+  const entry = { id: g.id, title: g.title, icon: g.small, url: g.url, folder: g.folder };
+  const list = loadShortcuts();
+  list.push(entry);
+  saveShortcuts(list);
+  if (typeof window.BeaconSteam.onShortcut === "function") window.BeaconSteam.onShortcut(entry);
+  try { window.parent.postMessage({ type: "beacon-steam-shortcut", game: entry }, "*"); } catch (e) {}
+}
+
+function launch(g) {
+  if (typeof window.BeaconSteam.onPlay === "function" && window.BeaconSteam.onPlay(g) === true) return;
+  $("playerTitle").textContent = g.title;
+  $("playerFrame").src = g.url;
+  $("player").classList.add("open");
+}
+
+$("playBtn").onclick = () => {
+  if (!current) return;
+  const g = current;
+  if ($("shortcutBox").checked) addShortcut(g);
+  closePopup();
+  launch(g);
+};
+$("closeBtn").onclick = closePopup;
+$("overlay").addEventListener("mousedown", e => { if (e.target === $("overlay")) closePopup(); });
+$("exitBtn").onclick = () => { $("player").classList.remove("open"); $("playerFrame").src = "about:blank"; };
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    if ($("player").classList.contains("open")) $("exitBtn").click();
+    else closePopup();
+  }
+});
+$("search").addEventListener("input", render);
+
+window.addEventListener("message", e => {
+  if (e.data && e.data.type === "beacon-steam-play") {
+    const g = games.find(x => x.id === e.data.id);
+    if (g) launch(g);
+  }
+});
+
+(async function init() {
+  try {
+    const r = await fetch(MANIFEST, { cache: "no-cache" });
+    const folders = await r.json();
+    games = await Promise.all(folders.map(loadGame));
+    games.sort((a, b) => a.title.localeCompare(b.title));
+  } catch (e) {
+    console.error("Could not load games.json", e);
+    games = [];
+  }
+  render();
+  const p = new URLSearchParams(location.search).get("play");
+  if (p) { const g = games.find(x => x.id === p); if (g) launch(g); }
+})();
+</script>
+</body>
+</html>

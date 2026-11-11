@@ -279,7 +279,7 @@ button {
     left: 3px;
 }
 
-/* SETTINGS */
+/* WINDOW CONTENT */
 
 .window-body {
     display: flex;
@@ -488,17 +488,6 @@ button {
 
 /* APP STORE */
 
-.store-heading {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 15px;
-}
-
-.store-heading h1 {
-    margin-bottom: 7px;
-}
-
 .store-tabs {
     display: flex;
     gap: 8px;
@@ -582,6 +571,27 @@ button {
     cursor: default;
 }
 
+.install-progress {
+    width: 100%;
+    height: 3px;
+    background: rgba(255,255,255,.12);
+    margin-top: 11px;
+    border-radius: 10px;
+    overflow: hidden;
+    display: none;
+}
+
+.install-progress.visible {
+    display: block;
+}
+
+.install-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #60a5fa;
+    border-radius: 10px;
+}
+
 .installed-label {
     color: #8fc99a;
     font-size: 11px;
@@ -633,7 +643,7 @@ button {
         <button class="desktop-icon" onclick="openStore()">
             <img src="Resources/Icons/AppStore.png" alt="App Store"
                  onerror="this.style.display='none'">
-            <span>AppStore</span>
+            <span>App Store</span>
         </button>
     </div>
 
@@ -646,7 +656,7 @@ button {
 
             <div class="window-controls">
                 <button class="window-control" onclick="minimizeWindow('settingsWindow')" title="Minimize">−</button>
-                <button class="window-control" id="settingsMaxButton" onclick="maximizeWindow('settingsWindow')" title="Maximize">
+                <button class="window-control" onclick="maximizeWindow('settingsWindow')" title="Maximize">
                     <span class="maximize-icon" id="settingsMaxIcon"></span>
                 </button>
                 <button class="window-control close" onclick="closeWindow('settingsWindow')" title="Close">×</button>
@@ -700,11 +710,11 @@ button {
     <div class="app-window" id="storeWindow">
 
         <div class="titlebar" id="storeTitlebar">
-            <div class="window-title">AppStore</div>
+            <div class="window-title">App Store</div>
 
             <div class="window-controls">
                 <button class="window-control" onclick="minimizeWindow('storeWindow')" title="Minimize">−</button>
-                <button class="window-control" id="storeMaxButton" onclick="maximizeWindow('storeWindow')" title="Maximize">
+                <button class="window-control" onclick="maximizeWindow('storeWindow')" title="Maximize">
                     <span class="maximize-icon" id="storeMaxIcon"></span>
                 </button>
                 <button class="window-control close" onclick="closeWindow('storeWindow')" title="Close">×</button>
@@ -713,28 +723,25 @@ button {
 
         <div class="window-body">
             <div class="sidebar">
-                <h2>AppStore</h2>
-                <button class="side-button active" id="wallpapersTab" onclick="showStoreTab('wallpapers')">Wallpapers</button>
-                <button class="side-button" id="appsTab" onclick="showStoreTab('apps')">Apps</button>
+                <h2>App Store</h2>
+                <button class="side-button active" id="appsTab" onclick="showStoreTab('apps')">Apps</button>
+                <button class="side-button" id="wallpapersTab" onclick="showStoreTab('wallpapers')">Wallpapers</button>
             </div>
 
             <div class="content">
-                <div id="storeWallpapers">
-                    <div class="store-heading">
-                        <div>
-                            <h1>Wallpapers</h1>
-                            <p class="subtitle">Find a new look for your desktop.</p>
-                        </div>
-                    </div>
 
-                    <div class="store-grid" id="storeGrid"></div>
-                </div>
-
-                <div id="storeApps" style="display:none">
+                <div id="storeApps">
                     <h1>Apps</h1>
                     <p class="subtitle">Browse available apps.</p>
                     <div class="store-empty">No Apps yet.</div>
                 </div>
+
+                <div id="storeWallpapers" style="display:none">
+                    <h1>Wallpapers</h1>
+                    <p class="subtitle">Find a new look for your desktop.</p>
+                    <div class="store-grid" id="storeGrid"></div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -857,7 +864,14 @@ function openStore() {
 
 function closeWindow(id) {
     document.getElementById(id).classList.remove("open");
-    if (id === "settingsWindow") stopAllPreviews();
+
+    if (id === "settingsWindow") {
+        stopAllPreviews();
+    }
+
+    if (id === "storeWindow") {
+        stopStorePreviews();
+    }
 }
 
 function minimizeWindow(id) {
@@ -1103,8 +1117,7 @@ blurSlider.addEventListener("input", function() {
 
 function stopPreview(video) {
     video.pause();
-    video.removeAttribute("src");
-    video.load();
+    video.currentTime = 0;
 }
 
 function stopAllPreviews() {
@@ -1112,6 +1125,12 @@ function stopAllPreviews() {
     previewTimers.clear();
 
     wallpaperGrid.querySelectorAll("video").forEach(video => {
+        stopPreview(video);
+    });
+}
+
+function stopStorePreviews() {
+    storeGrid.querySelectorAll("video").forEach(video => {
         stopPreview(video);
     });
 }
@@ -1138,30 +1157,30 @@ function createPreview(filename) {
     return image;
 }
 
-function addPreviewEvents(card, preview, filename) {
+function addPreviewEvents(card, preview, filename, storePreview = false) {
     if (!isVideo(filename)) return;
 
+    let hoverTimer;
+
     card.addEventListener("mouseenter", function() {
-        const timer = setTimeout(() => {
-            if (!settingsWindow.classList.contains("open")) return;
+        hoverTimer = setTimeout(() => {
+            if (storePreview) {
+                if (!document.getElementById("storeWindow").classList.contains("open")) return;
+            } else {
+                if (!document.getElementById("settingsWindow").classList.contains("open")) return;
+            }
 
-            preview.src = getWallpaperPath(filename);
-            preview.load();
+            if (!preview.getAttribute("src")) {
+                preview.src = getWallpaperPath(filename);
+                preview.load();
+            }
+
             preview.play().catch(() => {});
-            previewTimers.delete(preview);
         }, 500);
-
-        previewTimers.set(preview, timer);
     });
 
     card.addEventListener("mouseleave", function() {
-        const timer = previewTimers.get(preview);
-
-        if (timer) {
-            clearTimeout(timer);
-            previewTimers.delete(preview);
-        }
-
+        clearTimeout(hoverTimer);
         stopPreview(preview);
     });
 }
@@ -1238,10 +1257,10 @@ function renderStore() {
             preview.muted = true;
             preview.loop = true;
             preview.playsInline = true;
-            preview.preload = "metadata";
+            preview.preload = "none";
+        } else {
+            preview.src = getWallpaperPath(filename);
         }
-
-        preview.src = getWallpaperPath(filename);
 
         const info = document.createElement("div");
         info.className = "store-card-info";
@@ -1256,39 +1275,54 @@ function renderStore() {
         const button = document.createElement("button");
         button.className = "install-button";
 
+        const progress = document.createElement("div");
+        progress.className = "install-progress";
+
+        const fill = document.createElement("div");
+        fill.className = "install-progress-fill";
+
+        progress.appendChild(fill);
+
         if (installedWallpapers.includes(filename)) {
             button.textContent = "Installed";
             button.disabled = true;
-            button.className += " installed";
         } else {
             button.textContent = "Install";
 
             button.addEventListener("click", function() {
-                installWallpaper(filename, button);
+                installWallpaper(filename, button, progress, fill);
             });
         }
 
         bottom.appendChild(button);
-        info.append(name, bottom);
+        info.append(name, bottom, progress);
         card.append(preview, info);
+
+        if (isVideo(filename)) {
+            addPreviewEvents(card, preview, filename, true);
+        }
+
         storeGrid.appendChild(card);
     });
 }
 
-function installWallpaper(filename, button) {
+function installWallpaper(filename, button, progress, fill) {
     if (installedWallpapers.includes(filename)) return;
 
     button.disabled = true;
     button.textContent = "Installing...";
+    progress.classList.add("visible");
 
     const installTime = 200 + Math.random() * 400;
+
+    requestAnimationFrame(() => {
+        fill.style.transition = `width ${installTime}ms linear`;
+        fill.style.width = "100%";
+    });
 
     setTimeout(() => {
         installedWallpapers.push(filename);
         saveInstalledWallpapers();
-
-        button.textContent = "Installed";
-        button.disabled = true;
 
         renderWallpapers();
         renderStore();
@@ -1307,6 +1341,10 @@ function showStoreTab(tab) {
 
     wallpapersTab.classList.toggle("active", tab === "wallpapers");
     appsTab.classList.toggle("active", tab === "apps");
+
+    if (tab === "wallpapers") {
+        renderStore();
+    }
 }
 
 
@@ -1335,7 +1373,6 @@ async function loadWallpapers() {
             wallpapers.unshift("Windows_11.jpg");
         }
 
-        // Windows 11 is the only wallpaper installed automatically.
         installedWallpapers = installedWallpapers.filter(filename =>
             wallpapers.includes(filename)
         );
@@ -1346,7 +1383,6 @@ async function loadWallpapers() {
 
         saveInstalledWallpapers();
 
-        // First visit: use Windows 11.
         if (currentWallpaper === null) {
             setWallpaper("Windows_11.jpg");
         } else if (currentWallpaper === "__solid__") {

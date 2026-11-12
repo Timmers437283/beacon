@@ -1129,6 +1129,23 @@ input[type="range"] {
     </div>
 </div>
 
+<!-- SOUNDTRAP -->
+
+<div class="window" id="soundtrapWindow">
+    <div class="titlebar">
+        <span class="window-title">Soundtrap</span>
+        <div class="window-controls">
+            <button onclick="minimizeWindow('soundtrapWindow')">−</button>
+            <button onclick="maximizeWindow('soundtrapWindow')">□</button>
+            <button class="close" onclick="closeWindow('soundtrapWindow')">×</button>
+        </div>
+    </div>
+
+    <div class="window-content" style="display:block;background:#111">
+        <iframe src="https://www.soundtrap.com/home/" title="Soundtrap" style="width:100%;height:100%;border:0;background:#111"></iframe>
+    </div>
+</div>
+
 <!-- CELIO -->
 
 <div class="window" id="celioWindow">
@@ -1183,6 +1200,13 @@ const availableApps = [
         icon: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/Musify/Musify.png",
         preview: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/Musify/Preview.png",
         windowId: "musifyWindow"
+    },
+    {
+        id: "soundtrap",
+        name: "Soundtrap",
+        icon: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/Soundtrap/Soundtrap.png",
+        preview: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/Soundtrap/Preview.png",
+        windowId: "soundtrapWindow"
     },
      {
         id: "celio",

@@ -163,6 +163,56 @@
         return { left: START, top: START };
     }
 
+    // closest empty grid spot to where the icon was dropped
+    function nearestFreeSpot(exceptId, nearLeft, nearTop) {
+        const spots = takenSpots(exceptId);
+        const rows = rowsPerColumn();
+        const cols = Math.max(1, Math.floor((window.innerWidth - START) / STEP_X));
+        let best = null, bestDistance = Infinity;
+
+        for (let col = 0; col < cols; col++) {
+            for (let row = 0; row < rows; row++) {
+                const left = START + col * STEP_X;
+                const top = START + row * STEP_Y;
+                const busy = spots.some(([l, t]) => Math.abs(l - left) < ICON_W && Math.abs(t - top) < ICON_H);
+                if (busy) continue;
+                const distance = Math.hypot(left - nearLeft, top - nearTop);
+                if (distance < bestDistance) { bestDistance = distance; best = { left, top }; }
+            }
+        }
+        return best;
+    }
+
+    // after an icon is dropped on top of another one, push it to the nearest empty spot
+    function preventOverlap(icon) {
+        if (icon.dataset.beaconNoOverlap) return;
+        icon.dataset.beaconNoOverlap = "1";
+
+        let before = null;
+
+        icon.addEventListener("pointerdown", event => {
+            if (event.button !== 0) return;
+            before = { left: parseFloat(icon.style.left), top: parseFloat(icon.style.top) };
+        });
+
+        icon.addEventListener("pointerup", () => {
+            const id = icon.dataset.desktopId;
+            const left = parseFloat(icon.style.left);
+            const top = parseFloat(icon.style.top);
+            if (!id || !before || !isFinite(left) || !isFinite(top)) return;
+            if (left === before.left && top === before.top) return;   // was only a click
+
+            const overlaps = takenSpots(id).some(([l, t]) => Math.abs(l - left) < ICON_W && Math.abs(t - top) < ICON_H);
+            if (!overlaps) return;
+
+            const spot = nearestFreeSpot(id, left, top) || before;
+            icon.style.left = spot.left + "px";
+            icon.style.top = spot.top + "px";
+            desktopIconPositions[id] = { left: spot.left, top: spot.top };
+            savePositions();
+        });
+    }
+
     function installPlacementHook() {
         if (typeof makeDesktopIconDraggable !== "function" || makeDesktopIconDraggable.__beaconHooked) return;
 
@@ -175,20 +225,24 @@
                 desktopIconPositions[id] = spot;
                 savePositions();
             }
-            return original.call(this, icon, id, defaultLeft, defaultTop, onOpen);
+            const result = original.call(this, icon, id, defaultLeft, defaultTop, onOpen);
+            preventOverlap(icon);   // registered after the original drag code, so it runs after it
+            return result;
         };
         hooked.__beaconHooked = true;
         window.makeDesktopIconDraggable = hooked;
 
-        // icons that were already on the desktop without a saved spot: give them one
+        // icons that were already on the desktop: give them a spot if they have none, and guard them too
         document.querySelectorAll(".desktop-icon[data-desktop-id]").forEach(icon => {
             const id = icon.dataset.desktopId;
             const saved = desktopIconPositions[id];
-            if (saved && isFinite(saved.left) && isFinite(saved.top)) return;
-            const spot = findFreeSpot(id);
-            icon.style.left = spot.left + "px";
-            icon.style.top = spot.top + "px";
-            desktopIconPositions[id] = spot;
+            if (!saved || !isFinite(saved.left) || !isFinite(saved.top)) {
+                const spot = findFreeSpot(id);
+                icon.style.left = spot.left + "px";
+                icon.style.top = spot.top + "px";
+                desktopIconPositions[id] = spot;
+            }
+            preventOverlap(icon);
         });
         savePositions();
     }

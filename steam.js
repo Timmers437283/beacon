@@ -183,7 +183,37 @@
         return best;
     }
 
-    // after an icon is dropped on top of another one, push it to the nearest empty spot
+    // true if this icon's box touches any other icon's box on screen
+    function overlapsOther(icon) {
+        const a = icon.getBoundingClientRect();
+        const margin = 8;
+        return Array.from(document.querySelectorAll(".desktop-icon[data-desktop-id]")).some(other => {
+            if (other === icon) return false;
+            const b = other.getBoundingClientRect();
+            if (!b.width || !b.height) return false;
+            return a.left < b.right - margin && a.right > b.left + margin &&
+                   a.top < b.bottom - margin && a.bottom > b.top + margin;
+        });
+    }
+
+    function moveIcon(icon, spot) {
+        const id = icon.dataset.desktopId;
+        icon.style.left = spot.left + "px";
+        icon.style.top = spot.top + "px";
+        desktopIconPositions[id] = { left: spot.left, top: spot.top };
+        savePositions();
+    }
+
+    // any icons that are already stacked on each other (from before) get separated
+    function separateStackedIcons() {
+        document.querySelectorAll(".desktop-icon[data-desktop-id]").forEach(icon => {
+            if (!overlapsOther(icon)) return;
+            const spot = nearestFreeSpot(icon.dataset.desktopId, parseFloat(icon.style.left) || 0, parseFloat(icon.style.top) || 0);
+            if (spot) moveIcon(icon, spot);
+        });
+    }
+
+    // if an icon is dropped on top of another one, send it back to where it was grabbed
     function preventOverlap(icon) {
         if (icon.dataset.beaconNoOverlap) return;
         icon.dataset.beaconNoOverlap = "1";
@@ -202,14 +232,16 @@
             if (!id || !before || !isFinite(left) || !isFinite(top)) return;
             if (left === before.left && top === before.top) return;   // was only a click
 
-            const overlaps = takenSpots(id).some(([l, t]) => Math.abs(l - left) < ICON_W && Math.abs(t - top) < ICON_H);
-            if (!overlaps) return;
+            if (!overlapsOther(icon)) return;
 
-            const spot = nearestFreeSpot(id, left, top) || before;
-            icon.style.left = spot.left + "px";
-            icon.style.top = spot.top + "px";
-            desktopIconPositions[id] = { left: spot.left, top: spot.top };
-            savePositions();
+            // go back to where it was picked up
+            moveIcon(icon, before);
+
+            // if that old spot was somehow also stacked, use the nearest empty one instead
+            if (overlapsOther(icon)) {
+                const spot = nearestFreeSpot(id, before.left, before.top);
+                if (spot) moveIcon(icon, spot);
+            }
         });
     }
 
@@ -384,6 +416,9 @@
         } catch (e) {
             console.error("Steam: could not set up desktop shortcuts", e);
         }
+
+        try { separateStackedIcons(); }
+        catch (e) { console.error("Steam: could not separate stacked icons", e); }
     }
 
     // steam.html tells us when a shortcut should appear

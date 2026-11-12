@@ -1,12 +1,14 @@
 /*
- * Beacon Steam integration
- * Add ONE line to index.html, directly above the big <script> block (the one that starts with
+ * Beacon Steam + desktop extras
+ * Needs ONE line in index.html, directly above the big <script> block (the one that starts with
  * "const wallpaperElement"):
  *
  *     <script src="steam.js"></script>
  *
- * It adds: a Steam window (shows steam.html), a Steam icon on the desktop, and the
- * "Steam shortcut" icons that appear after someone clicks Play with the checkbox ticked.
+ * It adds:
+ *   - the Steam window (shows steam.html) and Steam game shortcuts on the desktop
+ *   - a custom right-click menu (on the desktop, and on apps / shortcuts with Delete)
+ *   - new apps and shortcuts land in an empty spot instead of on top of another icon
  */
 (function () {
     "use strict";
@@ -15,13 +17,30 @@
     const STEAM_ICON = "Resources/AppBase/Steam/Steam.png";
     const STEAM_PREVIEW = "Resources/AppBase/Steam/Preview.png";
 
-    /* ---------- window + styles (injected right away so index.html wires up drag/resize/maximize) ---------- */
+    // desktop grid (matches the snapping in index.html)
+    const ICON_W = 90, ICON_H = 100, STEP_X = 110, STEP_Y = 105, START = 20, TASKBAR = 48;
+
+    /* ---------- window, menu and styles (injected right away so index.html wires up drag/resize/maximize) ---------- */
 
     const style = document.createElement("style");
     style.textContent = `
         #steamShortcuts { position: absolute; inset: 0; pointer-events: none; }
         #steamShortcuts .desktop-icon { pointer-events: auto; }
         #steamWindow { width: 980px; height: 620px; }
+
+        #desktopMenu {
+            position: fixed; z-index: 2000; min-width: 190px; padding: 5px; display: none;
+            background: #202020f2; backdrop-filter: blur(20px);
+            border: 1px solid #ffffff22; border-radius: 8px; box-shadow: 0 10px 35px #0009;
+        }
+        #desktopMenu.open { display: block; }
+        #desktopMenu button {
+            display: block; width: 100%; text-align: left; padding: 8px 12px; border: 0;
+            border-radius: 5px; background: transparent; color: #fff; font-size: 13px; cursor: pointer;
+        }
+        #desktopMenu button:hover { background: #ffffff18; }
+        #desktopMenu button.danger:hover { background: #c42b2b; }
+        #desktopMenu .menu-sep { height: 1px; background: #ffffff18; margin: 5px 4px; }
     `;
     document.head.appendChild(style);
 
@@ -39,9 +58,10 @@
         <iframe id="steamFrame" src="steam.html" title="Steam" allow="fullscreen; autoplay; gamepad"
                 style="width:100%;height:100%;border:0;background:#1b2838"></iframe>
     </div>
-</div>`);
+</div>
+<div id="desktopMenu"></div>`);
 
-    /* ---------- desktop icons (need index.html's functions, so wait until the page has loaded) ---------- */
+    /* ---------- steam shortcuts ---------- */
 
     function loadShortcuts() {
         try {
@@ -60,10 +80,14 @@
             "steam.html?play=" + encodeURIComponent(id) + "&_=" + Date.now();
     }
 
-    function removeShortcut(game) {
-        saveShortcuts(loadShortcuts().filter(s => s.id !== game.id));
-        const key = "steam-game-" + game.id;
-        try { delete desktopIconPositions[key]; localStorage.setItem("desktopIconPositions", JSON.stringify(desktopIconPositions)); } catch (e) {}
+    function savePositions() {
+        try { localStorage.setItem("desktopIconPositions", JSON.stringify(desktopIconPositions)); } catch (e) {}
+    }
+
+    function removeShortcut(gameId) {
+        saveShortcuts(loadShortcuts().filter(s => s.id !== gameId));
+        delete desktopIconPositions["steam-game-" + gameId];
+        savePositions();
         renderShortcuts();
     }
 
@@ -72,10 +96,10 @@
         if (!box) return;
         box.innerHTML = "";
 
-        loadShortcuts().forEach((game, index) => {
+        loadShortcuts().forEach(game => {
             const icon = document.createElement("div");
             icon.className = "desktop-icon";
-            icon.title = "Click to play " + game.title + " (right-click to remove)";
+            icon.title = "Click to play " + game.title;
 
             const img = document.createElement("img");
             img.src = game.icon || STEAM_ICON;
@@ -89,27 +113,199 @@
             icon.append(img, label);
             box.appendChild(icon);
 
-            makeDesktopIconDraggable(
-                icon,
-                "steam-game-" + game.id,
-                130,
-                20 + index * 105,
-                () => launchGame(game.id)
-            );
-
-            icon.addEventListener("contextmenu", e => {
-                e.preventDefault();
-                if (confirm('Remove the "' + game.title + '" shortcut from the desktop?')) removeShortcut(game);
-            });
+            // position is chosen by the free-slot logic below (no saved spot yet = first empty spot)
+            makeDesktopIconDraggable(icon, "steam-game-" + game.id, START, START, () => launchGame(game.id));
         });
     }
+
+    /* ---------- free-slot placement ---------- */
+
+    function validIconIds() {
+        const ids = new Set(["app-store"]);
+        try { installedApps.forEach(id => ids.add(id)); } catch (e) {}
+        loadShortcuts().forEach(s => ids.add("steam-game-" + s.id));
+        return ids;
+    }
+
+    function takenSpots(exceptId) {
+        const spots = [];
+        document.querySelectorAll(".desktop-icon[data-desktop-id]").forEach(el => {
+            if (el.dataset.desktopId === exceptId) return;
+            const l = parseFloat(el.style.left), t = parseFloat(el.style.top);
+            if (isFinite(l) && isFinite(t)) spots.push([l, t]);
+        });
+        const valid = validIconIds();
+        Object.keys(desktopIconPositions).forEach(id => {
+            if (id === exceptId || !valid.has(id)) return;
+            const p = desktopIconPositions[id];
+            if (p && isFinite(p.left) && isFinite(p.top)) spots.push([p.left, p.top]);
+        });
+        return spots;
+    }
+
+    function rowsPerColumn() {
+        return Math.max(1, Math.floor((window.innerHeight - TASKBAR - START) / STEP_Y));
+    }
+
+    function findFreeSpot(exceptId) {
+        const spots = takenSpots(exceptId);
+        const rows = rowsPerColumn();
+        const cols = Math.max(1, Math.floor((window.innerWidth - START) / STEP_X));
+
+        for (let col = 0; col < cols; col++) {
+            for (let row = 0; row < rows; row++) {
+                const left = START + col * STEP_X;
+                const top = START + row * STEP_Y;
+                const busy = spots.some(([l, t]) => Math.abs(l - left) < ICON_W && Math.abs(t - top) < ICON_H);
+                if (!busy) return { left, top };
+            }
+        }
+        return { left: START, top: START };
+    }
+
+    function installPlacementHook() {
+        if (typeof makeDesktopIconDraggable !== "function" || makeDesktopIconDraggable.__beaconHooked) return;
+
+        const original = makeDesktopIconDraggable;
+
+        const hooked = function (icon, id, defaultLeft, defaultTop, onOpen) {
+            const saved = desktopIconPositions[id];
+            if (!saved || !isFinite(saved.left) || !isFinite(saved.top)) {
+                const spot = findFreeSpot(id);
+                desktopIconPositions[id] = spot;
+                savePositions();
+            }
+            return original.call(this, icon, id, defaultLeft, defaultTop, onOpen);
+        };
+        hooked.__beaconHooked = true;
+        window.makeDesktopIconDraggable = hooked;
+
+        // icons that were already on the desktop without a saved spot: give them one
+        document.querySelectorAll(".desktop-icon[data-desktop-id]").forEach(icon => {
+            const id = icon.dataset.desktopId;
+            const saved = desktopIconPositions[id];
+            if (saved && isFinite(saved.left) && isFinite(saved.top)) return;
+            const spot = findFreeSpot(id);
+            icon.style.left = spot.left + "px";
+            icon.style.top = spot.top + "px";
+            desktopIconPositions[id] = spot;
+        });
+        savePositions();
+    }
+
+    function arrangeIcons() {
+        const icons = Array.from(document.querySelectorAll(".desktop-icon[data-desktop-id]"));
+        icons.sort((a, b) => (a.dataset.desktopId === "app-store" ? -1 : 0) - (b.dataset.desktopId === "app-store" ? -1 : 0));
+
+        const rows = rowsPerColumn();
+        icons.forEach((icon, i) => {
+            const left = START + Math.floor(i / rows) * STEP_X;
+            const top = START + (i % rows) * STEP_Y;
+            icon.style.left = left + "px";
+            icon.style.top = top + "px";
+            desktopIconPositions[icon.dataset.desktopId] = { left, top };
+        });
+        savePositions();
+    }
+
+    /* ---------- delete / uninstall ---------- */
+
+    function uninstallApp(id) {
+        const i = installedApps.indexOf(id);
+        if (i > -1) installedApps.splice(i, 1);
+        try { localStorage.setItem("installedApps", JSON.stringify(installedApps)); } catch (e) {}
+
+        delete desktopIconPositions[id];
+        savePositions();
+
+        const app = availableApps.find(a => a.id === id);
+        if (app && app.windowId) closeWindow(app.windowId);
+        if (id === "steam") document.getElementById("steamFrame").src = "steam.html";
+
+        renderApps();
+        renderDesktopApps();
+    }
+
+    /* ---------- right-click menu ---------- */
+
+    const menu = document.getElementById("desktopMenu");
+
+    function hideMenu() { menu.classList.remove("open"); }
+
+    function showMenu(x, y, items) {
+        menu.innerHTML = "";
+        items.forEach(item => {
+            if (item === "sep") {
+                const sep = document.createElement("div");
+                sep.className = "menu-sep";
+                menu.appendChild(sep);
+                return;
+            }
+            const button = document.createElement("button");
+            button.textContent = item.label;
+            if (item.danger) button.className = "danger";
+            button.onclick = () => { hideMenu(); item.action(); };
+            menu.appendChild(button);
+        });
+
+        menu.classList.add("open");
+        const w = menu.offsetWidth, h = menu.offsetHeight;
+        menu.style.left = Math.max(0, Math.min(x, window.innerWidth - w - 4)) + "px";
+        menu.style.top = Math.max(0, Math.min(y, window.innerHeight - h - 4)) + "px";
+    }
+
+    function iconMenu(icon) {
+        const id = icon.dataset.desktopId;
+        const items = [{ label: "Open", action: () => icon.click() }];
+
+        if (id.startsWith("steam-game-")) {
+            items.push("sep", { label: "Remove shortcut", danger: true, action: () => removeShortcut(id.slice("steam-game-".length)) });
+        } else if (id !== "app-store") {
+            items.push("sep", { label: "Delete", danger: true, action: () => uninstallApp(id) });
+        }
+        return items;
+    }
+
+    function desktopMenu() {
+        return [
+            { label: "Open App Store", action: () => openWindow("storeWindow") },
+            { label: "Settings", action: () => openWindow("settingsWindow") },
+            "sep",
+            { label: "Arrange icons", action: arrangeIcons },
+            { label: "Refresh", action: () => location.reload() }
+        ];
+    }
+
+    document.addEventListener("contextmenu", e => {
+        if (e.target.closest("input, textarea")) return;   // keep normal copy/paste menu in text boxes
+        e.preventDefault();
+        if (e.target.closest("#desktopMenu")) return;
+
+        const icon = e.target.closest(".desktop-icon[data-desktop-id]");
+        if (icon) { showMenu(e.clientX, e.clientY, iconMenu(icon)); return; }
+
+        if (e.target.closest(".window, .taskbar, #calendarPanel")) { hideMenu(); return; }
+
+        showMenu(e.clientX, e.clientY, desktopMenu());
+    });
+
+    document.addEventListener("pointerdown", e => {
+        if (!e.target.closest("#desktopMenu")) hideMenu();
+    }, true);
+    document.addEventListener("keydown", e => { if (e.key === "Escape") hideMenu(); });
+    window.addEventListener("blur", hideMenu);
+    window.addEventListener("resize", hideMenu);
+
+    /* ---------- start up ---------- */
 
     function init() {
         const desktop = document.querySelector(".desktop");
         if (!desktop) return;
 
-        // Backup only: if you did NOT add Steam to availableApps in index.html, register it here.
-        // (If it is already in index.html's list, this does nothing.)
+        try { installPlacementHook(); }
+        catch (e) { console.error("Steam: could not set up icon placement", e); }
+
+        // Backup only: if Steam is NOT in index.html's availableApps list, register it here.
         try {
             if (typeof availableApps !== "undefined" && !availableApps.some(a => a.id === "steam")) {
                 availableApps.push({
@@ -126,7 +322,6 @@
             console.error("Steam: could not register in the App Store", e);
         }
 
-        // container for game shortcuts
         try {
             const box = document.createElement("div");
             box.id = "steamShortcuts";

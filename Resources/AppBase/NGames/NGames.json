@@ -1,14 +1,14 @@
 {
   "_help": "Add games to this list. id = unique, no spaces. url = the page that runs the game (relative path or full link). cover = square image (optional, a colored tile is drawn if missing). icon = desktop shortcut image (optional, falls back to cover).",
   "games": [
-    {
-      "id": "lozoot",
-      "title": "Legend of Zelda: Ocarina of Time",
-      "url": "NGames/LozOOT/index.html",
-      "cover": "NGames/LozOOT/Cover.png",
-      "color": "#faf6f9",
-      "description": "The Legend of Zelda: Ocarina of Time is an iconic action-adventure game where Link explores Hyrule, solves puzzles, battles enemies, explores dungeons, and uses the Ocarina of Time to travel between childhood and adulthood to stop Ganondorf."
-    },
+   {
+  "id": "lozoot",
+  "title": "Legend of Zelda: Ocarina of Time",
+  "url": "../../../NGames/LozOOT/index.html",
+  "cover": "../../../NGames/LozOOT/Cover.png",
+  "color": "#faf6f9",
+  "description": "The Legend of Zelda: Ocarina of Time is an iconic action-adventure game where Link explores Hyrule, solves puzzles, battles enemies, explores dungeons, and uses the Ocarina of Time to travel between childhood and adulthood to stop Ganondorf."
+}
     {
       "id": "sample-two",
       "title": "Sample Game Two",

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unity WebGL Player | Guns, Gore, and Cannoli</title>
+  <link rel="shortcut icon" href="https://raw.githubusercontent.com/linkawaken1979-alt/Guns-Gore-Cannoli-on-Web/main/TemplateData/favicon.ico">
+  <link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/linkawaken1979-alt/Guns-Gore-Cannoli-on-Web@main/TemplateData/style.css">
+</head>
+<body>
+  <div id="unity-container" class="unity-desktop">
+    <canvas id="unity-canvas" width="960" height="600"></canvas>
+    <div id="unity-loading-bar">
+      <div id="unity-logo"></div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
+    </div>
+    <div id="unity-warning"></div>
+    <div id="unity-footer">
+      <div id="unity-webgl-logo"></div>
+      <div id="unity-fullscreen-button"></div>
+      <div id="unity-build-title">Guns, Gore, and Cannoli</div>
+    </div>
+  </div>
+
+<script>
+const rawBase = "https://raw.githubusercontent.com/linkawaken1979-alt/Guns-Gore-Cannoli-on-Web/main";
+const buildUrl = `${rawBase}/Build`;
+const prefix = "GunsGoreAndCannoliWeb";
+
+const container = document.querySelector("#unity-container");
+const canvas = document.querySelector("#unity-canvas");
+const loadingBar = document.querySelector("#unity-loading-bar");
+const progressBarFull = document.querySelector("#unity-progress-bar-full");
+const fullscreenButton = document.querySelector("#unity-fullscreen-button");
+const warningBanner = document.querySelector("#unity-warning");
+
+function unityShowBanner(msg, type) {
+  const div = document.createElement("div");
+  div.textContent = msg;
+  div.style.padding = "10px";
+
+  if (type === "error") {
+    div.style.background = "red";
+  } else {
+    div.style.background = "yellow";
+    setTimeout(() => {
+      div.remove();
+      warningBanner.style.display =
+        warningBanner.children.length ? "block" : "none";
+    }, 5000);
+  }
+
+  warningBanner.appendChild(div);
+  warningBanner.style.display = "block";
+}
+
+async function loadParts(extension, count, progressStart, progressEnd) {
+  const chunks = [];
+
+  for (let i = 0; i < count; i++) {
+    const partName = `${prefix}.${extension}.${String(i).padStart(3, "0")}`;
+    const response = await fetch(`${buildUrl}/${partName}`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to load ${partName}: HTTP ${response.status}`);
+    }
+
+    chunks.push(await response.arrayBuffer());
+
+    const progress = (i + 1) / count;
+    progressBarFull.style.width =
+      (progressStart + progress * (progressEnd - progressStart)) + "%";
+  }
+
+  return new Blob(chunks);
+}
+
+// raw.githubusercontent.com serves text/plain + nosniff, so JS must be
+// fetched and re-wrapped as a Blob with a JavaScript MIME type.
+async function jsBlobUrl(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load ${url}: HTTP ${response.status}`);
+  }
+  const text = await response.text();
+  return URL.createObjectURL(new Blob([text], { type: "text/javascript" }));
+}
+
+async function startGame() {
+  loadingBar.style.display = "block";
+
+  try {
+    const [dataBlob, wasmBlob, frameworkUrl, loaderUrl] = await Promise.all([
+      loadParts("data", 16, 0, 40),
+      loadParts("wasm", 4, 40, 80),
+      jsBlobUrl(`${buildUrl}/${prefix}.framework.js`),
+      jsBlobUrl(`${buildUrl}/${prefix}.loader.js`)
+    ]);
+
+    const config = {
+      dataUrl: URL.createObjectURL(dataBlob),
+      frameworkUrl: frameworkUrl,
+      codeUrl: URL.createObjectURL(wasmBlob),
+      streamingAssetsUrl: `${rawBase}/StreamingAssets`,
+      companyName: "Crazy Monkey Studios",
+      productName: "Guns, Gore, and Cannoli",
+      productVersion: "StandaloneWindows_1.2.21",
+      showBanner: unityShowBanner
+    };
+
+    progressBarFull.style.width = "85%";
+
+    const script = document.createElement("script");
+    script.src = loaderUrl;
+
+    script.onload = () => {
+      createUnityInstance(canvas, config, progress => {
+        progressBarFull.style.width = (85 + progress * 15) + "%";
+      }).then(unityInstance => {
+        loadingBar.style.display = "none";
+        fullscreenButton.onclick = () => unityInstance.SetFullscreen(1);
+      }).catch(error => {
+        unityShowBanner(error, "error");
+      });
+    };
+
+    script.onerror = () => {
+      unityShowBanner("Failed to load Unity loader.", "error");
+    };
+
+    document.body.appendChild(script);
+
+  } catch (error) {
+    unityShowBanner(error.message, "error");
+    console.error(error);
+  }
+}
+
+if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+  container.className = "unity-mobile";
+  canvas.style.width = "100%";
+  canvas.style.height = "100%";
+} else {
+  canvas.style.width = "960px";
+  canvas.style.height = "600px";
+}
+
+startGame();
+</script>
+</body>
+</html>

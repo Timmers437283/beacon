@@ -1,32 +1,44 @@
 /*
- * Beacon Steam + desktop extras
+ * Beacon desktop extras: Steam + NGames windows, game shortcuts, right-click menu, icon placement.
  * Needs ONE line in index.html, directly above the big <script> block (the one that starts with
  * "const wallpaperElement"):
  *
  *     <script src="steam.js"></script>
- *
- * It adds:
- *   - the Steam window (shows steam.html) and Steam game shortcuts on the desktop
- *   - a custom right-click menu (on the desktop, and on apps / shortcuts with Delete)
- *   - new apps and shortcuts land in an empty spot instead of on top of another icon
  */
 (function () {
     "use strict";
 
-    const SHORTCUT_KEY = "beacon_steam_shortcuts";
     const STEAM_ICON = "Resources/AppBase/Steam/Steam.png";
     const STEAM_PREVIEW = "Resources/AppBase/Steam/Preview.png";
+    const NGAMES_ICON = "Resources/AppBase/NGames/NGames.png";
+    const NGAMES_PREVIEW = "Resources/AppBase/NGames/Preview.png";
+
+    // The two game launchers. Each has its own window, page, saved shortcuts and desktop-icon id prefix.
+    const SOURCES = [
+        {
+            name: "steam", title: "Steam", background: "#1b2838", icon: STEAM_ICON, preview: STEAM_PREVIEW,
+            page: "steam.html", windowId: "steamWindow", frameId: "steamFrame",
+            storage: "beacon_steam_shortcuts", prefix: "steam-game-", message: "beacon-steam-shortcut",
+            width: 980, height: 620
+        },
+        {
+            name: "ngames", title: "NGames", background: "#ebebeb", icon: NGAMES_ICON, preview: NGAMES_PREVIEW,
+            page: "ngames.html", windowId: "ngamesWindow", frameId: "ngamesFrame",
+            storage: "beacon_ngames_shortcuts", prefix: "ngames-game-", message: "beacon-ngames-shortcut",
+            width: 980, height: 620
+        }
+    ];
 
     // desktop grid (matches the snapping in index.html)
     const ICON_W = 90, ICON_H = 100, STEP_X = 110, STEP_Y = 105, START = 20, TASKBAR = 48;
 
-    /* ---------- window, menu and styles (injected right away so index.html wires up drag/resize/maximize) ---------- */
+    /* ---------- windows, menu and styles (injected right away so index.html wires up drag/resize/maximize) ---------- */
 
     const style = document.createElement("style");
     style.textContent = `
-        #steamShortcuts { position: absolute; inset: 0; pointer-events: none; }
-        #steamShortcuts .desktop-icon { pointer-events: auto; }
-        #steamWindow { width: 980px; height: 620px; }
+        #gameShortcuts { position: absolute; inset: 0; pointer-events: none; }
+        #gameShortcuts .desktop-icon { pointer-events: auto; }
+        ${SOURCES.map(s => `#${s.windowId} { width: ${s.width}px; height: ${s.height}px; }`).join("\n")}
 
         #desktopMenu {
             position: fixed; z-index: 2000; min-width: 190px; padding: 5px; display: none;
@@ -44,77 +56,85 @@
     `;
     document.head.appendChild(style);
 
-    document.body.insertAdjacentHTML("beforeend", `
-<div class="window" id="steamWindow">
+    SOURCES.forEach(s => {
+        document.body.insertAdjacentHTML("beforeend", `
+<div class="window" id="${s.windowId}">
     <div class="titlebar">
-        <span class="window-title">Steam</span>
+        <span class="window-title">${s.title}</span>
         <div class="window-controls">
-            <button onclick="minimizeWindow('steamWindow')">&minus;</button>
-            <button onclick="maximizeWindow('steamWindow')">&#9633;</button>
-            <button class="close" onclick="closeWindow('steamWindow')">&times;</button>
+            <button onclick="minimizeWindow('${s.windowId}')">&minus;</button>
+            <button onclick="maximizeWindow('${s.windowId}')">&#9633;</button>
+            <button class="close" onclick="closeWindow('${s.windowId}')">&times;</button>
         </div>
     </div>
-    <div class="window-content" style="display:block;background:#1b2838">
-        <iframe id="steamFrame" src="steam.html" title="Steam" allow="fullscreen; autoplay; gamepad"
-                style="width:100%;height:100%;border:0;background:#1b2838"></iframe>
+    <div class="window-content" style="display:block;background:${s.background}">
+        <iframe id="${s.frameId}" src="${s.page}" title="${s.title}" allow="fullscreen; autoplay; gamepad"
+                style="width:100%;height:100%;border:0;background:${s.background}"></iframe>
     </div>
-</div>
-<div id="desktopMenu"></div>`);
+</div>`);
+    });
+    document.body.insertAdjacentHTML("beforeend", `<div id="desktopMenu"></div>`);
 
-    /* ---------- steam shortcuts ---------- */
+    /* ---------- game shortcuts (one list per launcher) ---------- */
 
-    function loadShortcuts() {
+    function loadShortcuts(source) {
         try {
-            const list = JSON.parse(localStorage.getItem(SHORTCUT_KEY) || "[]");
+            const list = JSON.parse(localStorage.getItem(source.storage) || "[]");
             return Array.isArray(list) ? list : [];
         } catch (e) { return []; }
     }
 
-    function saveShortcuts(list) {
-        try { localStorage.setItem(SHORTCUT_KEY, JSON.stringify(list)); } catch (e) {}
+    function saveShortcuts(source, list) {
+        try { localStorage.setItem(source.storage, JSON.stringify(list)); } catch (e) {}
     }
 
-    function launchGame(id) {
-        openWindow("steamWindow");
-        document.getElementById("steamFrame").src =
-            "steam.html?play=" + encodeURIComponent(id) + "&_=" + Date.now();
+    function sourceForIconId(id) {
+        return SOURCES.find(s => id.startsWith(s.prefix));
+    }
+
+    function launchGame(source, id) {
+        openWindow(source.windowId);
+        document.getElementById(source.frameId).src =
+            source.page + "?play=" + encodeURIComponent(id) + "&_=" + Date.now();
     }
 
     function savePositions() {
         try { localStorage.setItem("desktopIconPositions", JSON.stringify(desktopIconPositions)); } catch (e) {}
     }
 
-    function removeShortcut(gameId) {
-        saveShortcuts(loadShortcuts().filter(s => s.id !== gameId));
-        delete desktopIconPositions["steam-game-" + gameId];
+    function removeShortcut(source, gameId) {
+        saveShortcuts(source, loadShortcuts(source).filter(s => s.id !== gameId));
+        delete desktopIconPositions[source.prefix + gameId];
         savePositions();
         renderShortcuts();
     }
 
     function renderShortcuts() {
-        const box = document.getElementById("steamShortcuts");
+        const box = document.getElementById("gameShortcuts");
         if (!box) return;
         box.innerHTML = "";
 
-        loadShortcuts().forEach(game => {
-            const icon = document.createElement("div");
-            icon.className = "desktop-icon";
-            icon.title = "Click to play " + game.title;
+        SOURCES.forEach(source => {
+            loadShortcuts(source).forEach(game => {
+                const icon = document.createElement("div");
+                icon.className = "desktop-icon";
+                icon.title = "Click to play " + game.title;
 
-            const img = document.createElement("img");
-            img.src = game.icon || STEAM_ICON;
-            img.alt = game.title;
-            img.style.borderRadius = "6px";
-            img.onerror = () => { img.onerror = null; img.src = STEAM_ICON; };
+                const img = document.createElement("img");
+                img.src = game.icon || source.icon;
+                img.alt = game.title;
+                img.style.borderRadius = "6px";
+                img.onerror = () => { img.onerror = null; img.src = source.icon; };
 
-            const label = document.createElement("span");
-            label.textContent = game.title;
+                const label = document.createElement("span");
+                label.textContent = game.title;
 
-            icon.append(img, label);
-            box.appendChild(icon);
+                icon.append(img, label);
+                box.appendChild(icon);
 
-            // position is chosen by the free-slot logic below (no saved spot yet = first empty spot)
-            makeDesktopIconDraggable(icon, "steam-game-" + game.id, START, START, () => launchGame(game.id));
+                // position comes from the free-slot logic below (no saved spot yet = first empty spot)
+                makeDesktopIconDraggable(icon, source.prefix + game.id, START, START, () => launchGame(source, game.id));
+            });
         });
     }
 
@@ -123,7 +143,7 @@
     function validIconIds() {
         const ids = new Set(["app-store"]);
         try { installedApps.forEach(id => ids.add(id)); } catch (e) {}
-        loadShortcuts().forEach(s => ids.add("steam-game-" + s.id));
+        SOURCES.forEach(source => loadShortcuts(source).forEach(s => ids.add(source.prefix + s.id)));
         return ids;
     }
 
@@ -163,7 +183,7 @@
         return { left: START, top: START };
     }
 
-    // closest empty grid spot to where the icon was dropped
+    // closest empty grid spot to a given position
     function nearestFreeSpot(exceptId, nearLeft, nearTop) {
         const spots = takenSpots(exceptId);
         const rows = rowsPerColumn();
@@ -204,7 +224,7 @@
         savePositions();
     }
 
-    // any icons that are already stacked on each other (from before) get separated
+    // icons that are already stacked on each other get separated
     function separateStackedIcons() {
         document.querySelectorAll(".desktop-icon[data-desktop-id]").forEach(icon => {
             if (!overlapsOther(icon)) return;
@@ -234,7 +254,6 @@
 
             if (!overlapsOther(icon)) return;
 
-            // go back to where it was picked up
             moveIcon(icon, before);
 
             // if that old spot was somehow also stacked, use the nearest empty one instead
@@ -264,7 +283,7 @@
         hooked.__beaconHooked = true;
         window.makeDesktopIconDraggable = hooked;
 
-        // icons that were already on the desktop: give them a spot if they have none, and guard them too
+        // icons already on the desktop: give them a spot if they have none, and guard them too
         document.querySelectorAll(".desktop-icon[data-desktop-id]").forEach(icon => {
             const id = icon.dataset.desktopId;
             const saved = desktopIconPositions[id];
@@ -306,7 +325,9 @@
 
         const app = availableApps.find(a => a.id === id);
         if (app && app.windowId) closeWindow(app.windowId);
-        if (id === "steam") document.getElementById("steamFrame").src = "steam.html";
+
+        const source = SOURCES.find(s => s.name === id);
+        if (source) document.getElementById(source.frameId).src = source.page;   // leave any running game
 
         renderApps();
         renderDesktopApps();
@@ -343,9 +364,10 @@
     function iconMenu(icon) {
         const id = icon.dataset.desktopId;
         const items = [{ label: "Open", action: () => icon.click() }];
+        const source = sourceForIconId(id);
 
-        if (id.startsWith("steam-game-")) {
-            items.push("sep", { label: "Remove shortcut", danger: true, action: () => removeShortcut(id.slice("steam-game-".length)) });
+        if (source) {
+            items.push("sep", { label: "Remove shortcut", danger: true, action: () => removeShortcut(source, id.slice(source.prefix.length)) });
         } else if (id !== "app-store") {
             items.push("sep", { label: "Delete", danger: true, action: () => uninstallApp(id) });
         }
@@ -389,42 +411,40 @@
         if (!desktop) return;
 
         try { installPlacementHook(); }
-        catch (e) { console.error("Steam: could not set up icon placement", e); }
+        catch (e) { console.error("Beacon: could not set up icon placement", e); }
 
-        // Backup only: if Steam is NOT in index.html's availableApps list, register it here.
+        // Backup only: if Steam / NGames are NOT in index.html's availableApps list, register them here.
         try {
-            if (typeof availableApps !== "undefined" && !availableApps.some(a => a.id === "steam")) {
-                availableApps.push({
-                    id: "steam",
-                    name: "Steam",
-                    icon: STEAM_ICON,
-                    preview: STEAM_PREVIEW,
-                    windowId: "steamWindow"
+            if (typeof availableApps !== "undefined") {
+                let added = false;
+                SOURCES.forEach(s => {
+                    if (availableApps.some(a => a.id === s.name)) return;
+                    availableApps.push({ id: s.name, name: s.title, icon: s.icon, preview: s.preview, windowId: s.windowId });
+                    added = true;
                 });
-                renderApps();
-                renderDesktopApps();
+                if (added) { renderApps(); renderDesktopApps(); }
             }
         } catch (e) {
-            console.error("Steam: could not register in the App Store", e);
+            console.error("Beacon: could not register apps in the App Store", e);
         }
 
         try {
             const box = document.createElement("div");
-            box.id = "steamShortcuts";
+            box.id = "gameShortcuts";
             desktop.insertBefore(box, document.getElementById("desktopApps"));
             renderShortcuts();
         } catch (e) {
-            console.error("Steam: could not set up desktop shortcuts", e);
+            console.error("Beacon: could not set up desktop shortcuts", e);
         }
 
         try { separateStackedIcons(); }
-        catch (e) { console.error("Steam: could not separate stacked icons", e); }
+        catch (e) { console.error("Beacon: could not separate stacked icons", e); }
     }
 
-    // steam.html tells us when a shortcut should appear
+    // the launcher pages tell us when a shortcut should appear
     window.addEventListener("message", e => {
         if (e.origin !== location.origin) return;
-        if (e.data && e.data.type === "beacon-steam-shortcut") renderShortcuts();
+        if (e.data && SOURCES.some(s => s.message === e.data.type)) renderShortcuts();
     });
 
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

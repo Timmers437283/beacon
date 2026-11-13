@@ -48,6 +48,14 @@
   "cover": "../../../NGames/F99/Cover.png",
   "color": "#083673",
   "description": "Experience classic football action in FIFA 99. Choose your favorite teams, compete in exciting matches, master passing and shooting, and lead your squad to victory in this classic soccer game."
+  },
+    {
+  "id": "lswcs",
+  "title": "LEGO Star-Wars - Complete Saga: N64",
+  "url": "../../../NGames/LSWCS/index.html",
+  "cover": "../../../NGames/LSWCS/Cover.png",
+  "color": "#1a3338",
+  "description": "Experience the complete LEGO Star Wars adventure, covering all six films from the original and prequel trilogies. Explore iconic locations, battle enemies, solve puzzles, collect characters, and relive the Star Wars saga with classic LEGO humor."
   }
   ]
 }

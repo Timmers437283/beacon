@@ -10,13 +10,13 @@
   "description": "The Legend of Zelda: Ocarina of Time is an iconic action-adventure game where Link explores Hyrule, solves puzzles, battles enemies, explores dungeons, and uses the Ocarina of Time to travel between childhood and adulthood to stop Ganondorf."
   },
     {
-      "id": "sample-two",
-      "title": "Sample Game Two",
-      "url": "NGames/SampleTwo/index.html",
-      "cover": "Resources/AppBase/NGames/Covers/sample-two.png",
-      "color": "#0ab9e6",
-      "description": "Replace this entry with your own game."
-    },
+  "id": "ssbn64",
+  "title": "Super Smash Bros: N64",
+  "url": "../../../NGames/SSB/index.html",
+  "cover": "../../../NGames/SSB/Cover.png",
+  "color": "#4455db",
+  "description": "Super Smash Bros. is a classic Nintendo 64 fighting game where players battle as iconic Nintendo characters across various stages using unique abilities, items, and powerful attacks."
+  },
     {
       "id": "sample-three",
       "title": "Sample Game Three",

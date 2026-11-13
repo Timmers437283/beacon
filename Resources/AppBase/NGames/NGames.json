@@ -3,7 +3,7 @@
   "games": [
    {
   "id": "lozoot",
-  "title": "Legend of Zelda: Ocarina of Time",
+  "title": "Legend of Zelda: Ocarina of Time: N64",
   "url": "../../../NGames/LozOOT/index.html",
   "cover": "../../../NGames/LozOOT/Cover.png",
   "color": "#faf6f9",
@@ -19,7 +19,7 @@
   },
     {
   "id": "mm",
-  "title": "Legend of Zelda: Majora's Mask",
+  "title": "Legend of Zelda: Majora's Mask: N64",
   "url": "../../../NGames/MM/index.html",
   "cover": "../../../NGames/MM/Cover.png",
   "color": "#9c64a1",
@@ -40,6 +40,14 @@
   "cover": "../../../NGames/PM/Cover.png",
   "color": "#f3e486",
   "description": "Join Mario on a colorful adventure through the Mushroom Kingdom in this classic RPG. Team up with unique characters, battle enemies using turn-based combat, solve puzzles, explore imaginative worlds, and rescue Princess Peach from Bowser."
+  },
+     {
+  "id": "f99",
+  "title": "FiFa 99: N64",
+  "url": "../../../NGames/F99/index.html",
+  "cover": "../../../NGames/F99/Cover.png",
+  "color": "#083673",
+  "description": "Experience classic football action in FIFA 99. Choose your favorite teams, compete in exciting matches, master passing and shooting, and lead your squad to victory in this classic soccer game."
   }
   ]
 }

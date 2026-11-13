@@ -26,12 +26,12 @@
   "description": "The Legend of Zelda: Majora's Mask is an action-adventure game where Link explores the mysterious land of Termina, solves puzzles, battles enemies, and uses magical masks while racing against a three-day countdown to stop the moon from crashing."
   },
     {
-      "id": "sample-four",
-      "title": "Sample Game Four",
-      "url": "NGames/SampleFour/index.html",
-      "cover": "Resources/AppBase/NGames/Covers/sample-four.png",
-      "color": "#32be5a",
-      "description": "Replace this entry with your own game."
-    }
+  "id": "af",
+  "title": "Animal Forest: N64",
+  "url": "../../../NGames/AF/index.html",
+  "cover": "../../../NGames/AF/Cover.png",
+  "color": "#fedc3b",
+  "description": "Animal Forest is a relaxing life simulation game where players live in a peaceful village alongside animal neighbors, decorate their home, collect items, fish, catch bugs, and enjoy everyday activities."
+  }
   ]
 }

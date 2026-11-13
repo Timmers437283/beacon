@@ -18,13 +18,13 @@
   "description": "Super Smash Bros. is a classic Nintendo 64 fighting game where players battle as iconic Nintendo characters across various stages using unique abilities, items, and powerful attacks."
   },
     {
-      "id": "sample-three",
-      "title": "Sample Game Three",
-      "url": "NGames/SampleThree/index.html",
-      "cover": "Resources/AppBase/NGames/Covers/sample-three.png",
-      "color": "#ff9d00",
-      "description": "Replace this entry with your own game."
-    },
+  "id": "mm",
+  "title": "Legend of Zelda: Majora's Mask",
+  "url": "../../../NGames/MM/index.html",
+  "cover": "../../../NGames/MM/Cover.png",
+  "color": "#9c64a1",
+  "description": "The Legend of Zelda: Majora's Mask is an action-adventure game where Link explores the mysterious land of Termina, solves puzzles, battles enemies, and uses magical masks while racing against a three-day countdown to stop the moon from crashing."
+  },
     {
       "id": "sample-four",
       "title": "Sample Game Four",

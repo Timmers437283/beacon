@@ -325,6 +325,9 @@ html, body {
         .then(function (data) {
             var list = Array.isArray(data) ? data : (data && data.games) || [];
             all = list.map(normalize).filter(Boolean);
+            all.sort(function (a, b) {                       // A to Z by title, ignoring capitals; numbers sort naturally (2 before 10)
+                return a.title.localeCompare(b.title, undefined, { sensitivity: "base", numeric: true });
+            });
             view = all.slice();
             build();
 

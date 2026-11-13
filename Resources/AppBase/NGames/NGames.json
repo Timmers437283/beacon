@@ -32,6 +32,14 @@
   "cover": "../../../NGames/AF/Cover.png",
   "color": "#fedc3b",
   "description": "Animal Forest is a relaxing life simulation game where players live in a peaceful village alongside animal neighbors, decorate their home, collect items, fish, catch bugs, and enjoy everyday activities."
+  },
+    {
+  "id": "pm",
+  "title": "Paper Mario: N64",
+  "url": "../../../NGames/PM/index.html",
+  "cover": "../../../NGames/PM/Cover.png",
+  "color": "#f3e486",
+  "description": "Join Mario on a colorful adventure through the Mushroom Kingdom in this classic RPG. Team up with unique characters, battle enemies using turn-based combat, solve puzzles, explore imaginative worlds, and rescue Princess Peach from Bowser."
   }
   ]
 }

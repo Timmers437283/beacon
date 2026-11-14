@@ -117,11 +117,16 @@ html, body {
     }
     tick(); setInterval(tick, 20000);
 
-    /* ---------- sounds (made by the browser's synth, no audio files needed) ---------- */
+    /* ---------- sounds ---------- */
+    // swap.mp3 plays when the selected game changes, click.mp3 when a game is opened.
+    // They live in Resources/sounds/. This page is in Resources/AppBase/NGames/, so the first path tried is ../../sounds/.
+    // If a file can't be found or decoded, a small built-in synth sound plays instead.
 
+    var SOUND_DIRS = ["../../sounds/", "Resources/sounds/", "sounds/"];
     var audio = null, lastTick = 0;
+    var samples = { swap: null, click: null };
 
-    function ctx() {                                   // created on first use; browsers only allow sound after a click or key press
+    function ctx() {                                   // browsers only start sound after a click or key press
         try {
             if (!audio) {
                 var AC = window.AudioContext || window.webkitAudioContext;
@@ -131,6 +136,33 @@ html, body {
             if (audio.state === "suspended") audio.resume();
             return audio;
         } catch (e) { return null; }
+    }
+
+    function loadSample(name) {
+        var c = ctx(); if (!c) return;
+        var i = 0;
+        (function next() {
+            if (i >= SOUND_DIRS.length) return;
+            var url = SOUND_DIRS[i++] + name + ".mp3";
+            fetch(url)
+                .then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+                .then(function (data) {
+                    return new Promise(function (ok, fail) { c.decodeAudioData(data, ok, fail); });
+                })
+                .then(function (buffer) { samples[name] = buffer; })
+                .catch(next);
+        })();
+    }
+
+    function playSample(name, volume) {
+        var c = ctx(), b = samples[name];
+        if (!c || !b) return false;
+        var src = c.createBufferSource(), gain = c.createGain();
+        src.buffer = b;
+        gain.gain.value = volume;
+        src.connect(gain); gain.connect(c.destination);
+        src.start(0);
+        return true;
     }
 
     function blip(c, type, freq, endFreq, start, dur, vol) {
@@ -145,23 +177,28 @@ html, body {
         o.start(t); o.stop(t + dur + 0.02);
     }
 
-    // small "tick" when the selected game changes
+    // when the selected game changes
     function tickSound() {
         var now = Date.now();
-        if (now - lastTick < 30) return;               // holding an arrow key won't turn into a buzz
+        if (now - lastTick < 40) return;               // holding an arrow key won't turn into a buzz
         lastTick = now;
+        if (playSample("swap", 1)) return;
         var c = ctx(); if (!c) return;
         blip(c, "triangle", 1500, 1000, 0, 0.05, 0.09);
         blip(c, "square", 2200, 1600, 0, 0.025, 0.02);
     }
 
-    // short rising chime when a game is started
+    // when a game is opened
     function startSound() {
+        if (playSample("click", 1)) return;
         var c = ctx(); if (!c) return;
         blip(c, "triangle", 523, null, 0.00, 0.14, 0.12);
         blip(c, "triangle", 784, null, 0.07, 0.16, 0.12);
         blip(c, "sine", 1047, null, 0.14, 0.30, 0.10);
     }
+
+    loadSample("swap");
+    loadSample("click");
 
     /* ---------- games + covers ---------- */
 

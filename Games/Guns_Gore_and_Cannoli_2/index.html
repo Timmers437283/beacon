@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en-us" class="ggc-custom-cursor">
+
+<head>
+	<meta name='viewport'
+		content='width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover' />
+	<base href="https://fastly.jsdelivr.net/gh/linkawaken1979-alt/Guns-Gore-And-Cannoli-2-WebPort@main/" target="_blank">
+	<meta charset='utf-8'>
+	<style>
+		html, body {
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+			background: rgb(5, 5, 5);
+			font-family: Arial, sans-serif;
+		}
+		#unity-container {
+			position: fixed;
+			inset: 0;
+			overflow: hidden;
+			background: rgb(5, 5, 5);
+		}
+		#unity-canvas {
+			display: block;
+			width: 100%;
+			height: 100%;
+			background: rgb(5, 5, 5);
+			outline: none;
+		}
+
+		/* loading screen */
+		#loading-screen {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			width: 340px;
+			max-width: 90%;
+			display: none;
+			color: #ddd;
+			font-size: 14px;
+			text-align: left;
+		}
+		#loading-title {
+			text-align: center;
+			font-size: 18px;
+			margin-bottom: 14px;
+			color: #fff;
+		}
+		.load-row {
+			display: flex;
+			justify-content: space-between;
+			margin: 4px 0;
+		}
+		.load-row .state { color: #d8b24a; }
+		.load-row .state.done { color: #6fdc6f; }
+		#unity-progress-bar-empty {
+			width: 100%;
+			height: 10px;
+			margin-top: 12px;
+			background: rgba(255, 255, 255, .15);
+			border-radius: 5px;
+			overflow: hidden;
+		}
+		#unity-progress-bar-full {
+			width: 0%;
+			height: 100%;
+			background: #d8b24a;
+			transition: width .15s linear;
+		}
+		#loading-error {
+			margin-top: 14px;
+			color: #ff3b3b;
+			font-weight: bold;
+			text-align: center;
+			word-break: break-word;
+			display: none;
+		}
+		#unity-warning {
+			position: absolute;
+			left: 0;
+			top: 0;
+			right: 0;
+			display: none;
+			color: #000;
+		}
+
+		html.ggc-custom-cursor,
+		html.ggc-custom-cursor *,
+		body.ggc-custom-cursor,
+		body.ggc-custom-cursor * {
+			cursor: none !important;
+		}
+		html.ggc-custom-cursor #ggc-web-input {
+			cursor: text !important;
+		}
+	</style>
+	<title>Guns, Gore, and Cannoli 2</title>
+	<meta name="robots" content="noindex,nofollow" />
+</head>
+
+<body class="ggc-custom-cursor">
+	<div id="unity-container">
+		<canvas id="unity-canvas" tabindex="-1"></canvas>
+
+		<div id="loading-screen">
+			<div id="loading-title">Guns, Gore, and Cannoli 2</div>
+			<div class="load-row"><span>Data</span><span class="state" id="data-state">0 chunks (0.0 MB)</span></div>
+			<div class="load-row"><span>WASM</span><span class="state" id="wasm-state">0 chunks (0.0 MB)</span></div>
+			<div class="load-row"><span>Engine</span><span class="state" id="engine-state">0/100</span></div>
+			<div id="unity-progress-bar-empty">
+				<div id="unity-progress-bar-full"></div>
+			</div>
+			<div id="loading-error"></div>
+		</div>
+
+		<div id="unity-warning"></div>
+	</div>
+
+	<script>
+		const BASE = "https://fastly.jsdelivr.net/gh/linkawaken1979-alt/Guns-Gore-And-Cannoli-2-WebPort@main/";
+		const FALLBACK_BASES = [
+			"https://raw.githubusercontent.com/linkawaken1979-alt/Guns-Gore-And-Cannoli-2-WebPort/main/"
+		];
+
+		const canvas = document.querySelector("#unity-canvas");
+		const loadingScreen = document.querySelector("#loading-screen");
+		const progressBarFull = document.querySelector("#unity-progress-bar-full");
+		const warningBanner = document.querySelector("#unity-warning");
+		const errorBox = document.querySelector("#loading-error");
+		const dataState = document.querySelector("#data-state");
+		const wasmState = document.querySelector("#wasm-state");
+		const engineState = document.querySelector("#engine-state");
+
+		function showError(msg) {
+			errorBox.textContent = "Error: " + msg;
+			errorBox.style.display = "block";
+			loadingScreen.style.display = "block";
+		}
+
+		// used by Unity for its own banners; errors go to the red text instead
+		function unityShowBanner(msg, type) {
+			if (type === "error") {
+				showError(msg);
+				return;
+			}
+			const div = document.createElement("div");
+			div.innerHTML = msg;
+			div.style = "background:yellow;color:#000;padding:10px;";
+			setTimeout(() => div.remove(), 5000);
+			warningBanner.appendChild(div);
+			warningBanner.style.display = "block";
+		}
+
+		function fitCanvasToWindow() {
+			canvas.style.width = window.innerWidth + "px";
+			canvas.style.height = window.innerHeight + "px";
+		}
+		fitCanvasToWindow();
+		window.addEventListener("resize", fitCanvasToWindow);
+
+		const buildPath = "Build/";
+		const CHUNK_SIZE = 20 * 1024 * 1024;
+
+		function mb(bytes) {
+			return (bytes / 1024 / 1024).toFixed(1);
+		}
+
+		// WebGL.data and WebGL.wasm are stored as 20 MB chunks (.000, .001, ...)
+		// Each chunk tries jsDelivr first, then falls back to raw.githubusercontent.com
+		async function loadSplitFile(filename, stateEl) {
+			const sources = [BASE, ...FALLBACK_BASES];
+			const chunks = [];
+			let total = 0;
+
+			function report(done) {
+				stateEl.textContent = done
+					? "done: " + chunks.length + " chunks (" + mb(total) + " MB)"
+					: chunks.length + " chunks (" + mb(total) + " MB)";
+				stateEl.classList.toggle("done", !!done);
+			}
+
+			for (let index = 0; ; index++) {
+				if (index > 0 && chunks[index - 1].byteLength !== CHUNK_SIZE) break;
+
+				const name = filename + "." + String(index).padStart(3, "0");
+				let data = null;
+				const statuses = [];
+
+				for (const src of sources) {
+					try {
+						const response = await fetch(src + buildPath + name);
+						if (response.ok) {
+							data = await response.arrayBuffer();
+							if (src !== BASE) console.log(name + " loaded from fallback:", src);
+							break;
+						}
+						statuses.push(response.status);
+					} catch (e) {
+						statuses.push("network error");
+					}
+				}
+
+				if (!data) {
+					// every source said 404 on a later chunk = no more chunks
+					if (index > 0 && statuses.length && statuses.every((s) => s === 404)) break;
+					throw new Error("Could not load " + name + " (HTTP " + statuses.join(", ") + ")");
+				}
+
+				chunks.push(data);
+				total += data.byteLength;
+				report(false);
+			}
+
+			const combined = new Uint8Array(total);
+			let offset = 0;
+			for (const chunk of chunks) {
+				combined.set(new Uint8Array(chunk), offset);
+				offset += chunk.byteLength;
+			}
+			report(true);
+			console.log(filename + " loaded:", total, "bytes,", chunks.length, "chunks");
+			return combined.buffer;
+		}
+
+		async function startGame() {
+			loadingScreen.style.display = "block";
+			try {
+				const [dataBuffer, wasmBuffer] = await Promise.all([
+					loadSplitFile("WebGL.data", dataState),
+					loadSplitFile("WebGL.wasm", wasmState)
+				]);
+
+				const config = {
+					dataUrl: URL.createObjectURL(
+						new Blob([dataBuffer], { type: "application/octet-stream" })
+					),
+					frameworkUrl: BASE + buildPath + "WebGL.framework.js",
+					codeUrl: URL.createObjectURL(
+						new Blob([wasmBuffer], { type: "application/wasm" })
+					),
+					streamingAssetsUrl: BASE + "StreamingAssets",
+					companyName: "Crazy Monkey Studios",
+					productName: "Guns, Gore, and Cannoli 2",
+					productVersion: "gogrelease_1.0.8",
+					showBanner: unityShowBanner
+				};
+
+				const script = document.createElement("script");
+				script.src = BASE + buildPath + "WebGL.loader.js";
+				script.onload = () => {
+					createUnityInstance(canvas, config, (progress) => {
+						const pct = Math.round(progress * 100);
+						progressBarFull.style.width = pct + "%";
+						engineState.textContent = pct + "/100";
+					}).then((unityInstance) => {
+						loadingScreen.style.display = "none";
+						canvas.focus();
+						window.unityInstance = unityInstance;
+					}).catch((error) => {
+						console.error(error);
+						showError(String(error));
+					});
+				};
+				script.onerror = () => {
+					showError("Failed to load Unity loader (WebGL.loader.js).");
+				};
+				document.body.appendChild(script);
+			} catch (error) {
+				console.error(error);
+				showError(error.message);
+			}
+		}
+
+		startGame();
+	</script>
+</body>
+
+</html>

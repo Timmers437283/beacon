@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<!-- Ultimate Game Stash file-->
+<!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
+
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unity Game</title>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: rgb(35, 31, 32);
+}
+
+#button {
+  display: none;
+}
+
+.imgb_vis {
+  animation: imgb-animation 7s linear;
+}
+
+@keyframes imgb-animation {
+  10% { transform: translateX(0); }
+  20% { transform: translateX(100px); }
+  90% { transform: translateX(100px); }
+  100% { transform: translateX(0); }
+}
+
+.webgl-content {
+  width: 100%;
+  height: 100%;
+}
+
+#gameContainer {
+  width: 100vw;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  position: relative;
+  background: rgb(35, 31, 32);
+}
+</style>
+</head>
+
+<body dir="ltr">
+
+<script src="https://fastly.jsdelivr.net/gh/lee2sman/everyday@d45d601d2c4d60adf809a0b677c00b7d12aba7e9/96/TemplateData/UnityProgress.js"></script>
+
+<script src="https://fastly.jsdelivr.net/gh/gertdoro/UnityExplorer@cffa09e09790018403c996d37adb6c4450e8f6c6/Runtime/birds/birds.js"></script>
+
+<div class="webgl-content">
+  <div id="gameContainer"></div>
+</div>
+
+<script>
+var gameInstance = UnityLoader.instantiate(
+  "gameContainer",
+  "https://fastly.jsdelivr.net/gh/gertdoro/UnityExplorer@cffa09e09790018403c996d37adb6c4450e8f6c6/Runtime/birds/birds.json",
+  {
+    onProgress: UnityProgress,
+    Module: {
+      onRuntimeInitialized: function() {
+        UnityProgress(gameInstance, "complete");
+      }
+    }
+  }
+);
+</script>
+
+<script>
+if (window.gadgets?.util?.runOnLoadHandlers) {
+  gadgets.util.runOnLoadHandlers();
+}
+
+if (window.google?.csi?.tickDl) {
+  google.csi.tickDl();
+}
+</script>
+
+</body>
+</html>

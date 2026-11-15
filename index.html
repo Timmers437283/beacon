@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -928,11 +927,14 @@ input[type="range"] {
         <span>App Store</span>
     </div>
 
+    <div class="desktop-icon" id="settingsDesktopIcon" data-desktop-id="settings">
+        <img src="https://raw.githubusercontent.com/Timmers437283/beacon/main/Resources/Icons/Settings.png" alt="Settings">
+        <span>Settings</span>
+    </div>
+
     <div id="desktopApps"></div>
 
     <div class="taskbar">
-        <button class="taskbar-button" onclick="openWindow('settingsWindow')" title="Settings">⚙</button>
-
         <div class="clock" id="taskbarClock" onclick="toggleCalendar()" title="Date and time">
             <div id="clockTime"></div>
             <div id="clockDate"></div>
@@ -2436,6 +2438,16 @@ makeDesktopIconDraggable(
     20,
     20,
     () => openWindow("storeWindow")
+);
+
+const settingsIcon = document.getElementById("settingsDesktopIcon");
+
+makeDesktopIconDraggable(
+    settingsIcon,
+    "settings",
+    130,
+    20,
+    () => openWindow("settingsWindow")
 );
 
 renderApps();

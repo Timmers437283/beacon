@@ -4,956 +4,188 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ㅤ</title>
-
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,sans-serif}
+body{width:100vw;height:100vh;overflow:hidden;background:#111;color:#fff;user-select:none}
+#wallpaper{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;background-color:#111;overflow:hidden}
+#wallpaper video{width:100%;height:100%;object-fit:cover}
+#wallpaperBlur{position:fixed;inset:0;z-index:1;pointer-events:none}
+.desktop{position:relative;z-index:2;width:100%;height:100%}
+.desktop-icon{width:90px;padding:12px 5px;position:absolute;top:20px;left:20px;display:flex;flex-direction:column;align-items:center;gap:7px;border:1px solid transparent;border-radius:5px;cursor:pointer;touch-action:none}
+.desktop-icon.dragging{z-index:10;background:#ffffff20;border-color:#ffffff30}
+.desktop-icon:hover{background:#ffffff20;border-color:#ffffff20}
+.desktop-icon img{width:45px;height:45px;object-fit:contain}
+.desktop-icon span{font-size:12px;text-shadow:0 1px 4px #000}
+#desktopApps{position:absolute;inset:0;pointer-events:none}
+#desktopApps .desktop-icon{pointer-events:auto}
+.taskbar{position:absolute;bottom:0;left:0;width:100%;height:48px;background:#171717e8;backdrop-filter:blur(25px);display:flex;align-items:center;justify-content:flex-end;padding:0 15px;border-top:1px solid #ffffff12;z-index:20}
+.clock{text-align:right;font-size:12px;line-height:17px;cursor:pointer;padding:5px 8px;border-radius:5px}
+.clock:hover,.clock.selected{background:#ffffff18}
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: Inter, sans-serif;
-}
-
-body {
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    background: #111;
-    color: white;
-    user-select: none;
-}
-
-#wallpaper {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    background-size: cover;
-    background-position: center;
-    background-color: #111;
-    overflow: hidden;
-}
-
-#wallpaper video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-#wallpaperBlur {
-    position: fixed;
-    inset: 0;
-    z-index: 1;
-    backdrop-filter: blur(0px);
-    pointer-events: none;
-}
-
-.desktop {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    height: 100%;
-}
-
-.desktop-icon {
-    width: 90px;
-    padding: 12px 5px;
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 7px;
-    border: 1px solid transparent;
-    border-radius: 5px;
-    cursor: pointer;
-    touch-action: none;
-}
-
-.desktop-icon.dragging {
-    z-index: 10;
-    background: #ffffff20;
-    border-color: #ffffff30;
-}
-
-#desktopApps {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-}
-
-#desktopApps .desktop-icon {
-    pointer-events: auto;
-}
-
-.desktop-icon:hover {
-    background: #ffffff20;
-    border-color: #ffffff20;
-}
-
-.desktop-icon img {
-    width: 45px;
-    height: 45px;
-    object-fit: contain;
-}
-
-.desktop-icon span {
-    font-size: 12px;
-    text-shadow: 0 1px 4px #000;
-}
-
-.taskbar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 48px;
-    background: #171717e8;
-    backdrop-filter: blur(25px);
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 0 15px;
-    gap: 15px;
-    border-top: 1px solid #ffffff12;
-    z-index: 20;
-}
-
-.taskbar-button {
-    height: 36px;
-    min-width: 36px;
-    padding: 0 9px;
-    border: 0;
-    background: transparent;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 19px;
-}
-
-.taskbar-button:hover {
-    background: #ffffff18;
-}
-
-.clock {
-    text-align: right;
-    font-size: 12px;
-    line-height: 17px;
-    cursor: pointer;
-    padding: 5px 8px;
-    border-radius: 5px;
-}
-
-.clock:hover,
-.clock.selected {
-    background: #ffffff18;
-}
-
-.window {
-    position: absolute;
-    width: 760px;
-    height: 520px;
-    max-width: calc(100vw - 30px);
-    max-height: calc(100vh - 75px);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #191919;
-    border: 1px solid #ffffff22;
-    border-radius: 9px;
-    box-shadow: 0 15px 55px #0008;
-    overflow: hidden;
-    display: none;
-    flex-direction: column;
-    z-index: 10;
-}
-
-.window.active {
-    display: flex;
-}
-
-.window.maximized {
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: calc(100% - 48px) !important;
-    max-width: none;
-    max-height: none;
-    transform: none !important;
-    border-radius: 0;
-}
-
-.titlebar {
-    height: 42px;
-    min-height: 42px;
-    background: #202020;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-left: 15px;
-    border-bottom: 1px solid #ffffff0c;
-    cursor: grab;
-}
-
-.titlebar:active {
-    cursor: grabbing;
-}
-
-.window-title {
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.window-controls {
-    height: 100%;
-    display: flex;
-}
-
-.window-controls button {
-    width: 45px;
-    height: 100%;
-    border: 0;
-    background: transparent;
-    color: white;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.window-controls button:hover {
-    background: #ffffff20;
-}
-
-.window-controls .close:hover {
-    background: #c42b2b;
-}
-
-.window-content {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    overflow: hidden;
-}
-
-.settings-content {
-    padding: 25px;
-    overflow-y: auto;
-    display: block;
-}
-
-.section-title {
-    font-size: 21px;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-.section-description {
-    font-size: 13px;
-    color: #999;
-    margin-bottom: 25px;
-}
-
-.setting-section {
-    margin-bottom: 30px;
-}
-
-.setting-section h3 {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-
-.setting-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 13px 0;
-    border-bottom: 1px solid #ffffff12;
-}
-
-.setting-row span {
-    font-size: 13px;
-    color: #ddd;
-}
-
-input[type="color"] {
-    width: 45px;
-    height: 30px;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-}
-
-input[type="range"] {
-    width: 180px;
-    accent-color: white;
-    cursor: pointer;
-}
-
-.setting-toggle {
-    appearance: none;
-    width: 42px;
-    height: 24px;
-    border-radius: 20px;
-    background: #555;
-    position: relative;
-    cursor: pointer;
-    transition: background .18s ease;
-    flex-shrink: 0;
-}
-
-.setting-toggle::after {
-    content: "";
-    position: absolute;
-    width: 18px;
-    height: 18px;
-    top: 3px;
-    left: 3px;
-    border-radius: 50%;
-    background: white;
-    transition: transform .18s ease;
-}
-
-.setting-toggle:checked {
-    background: #397bd8;
-}
-
-.setting-toggle:checked::after {
-    transform: translateX(18px);
-}
-
-/* WINDOW RESIZING */
-
-.window-edge {
-    position: absolute;
-    z-index: 30;
-    touch-action: none;
-}
-
-.window-edge.left,
-.window-edge.right {
-    top: 8px;
-    bottom: 8px;
-    width: 6px;
-    cursor: ew-resize;
-}
-
-.window-edge.left { left: 0; }
-.window-edge.right { right: 0; }
-
-.window-edge.top,
-.window-edge.bottom {
-    left: 8px;
-    right: 8px;
-    height: 6px;
-    cursor: ns-resize;
-}
-
-.window-edge.top { top: 0; }
-.window-edge.bottom { bottom: 0; }
-
-.window-edge.top-left,
-.window-edge.top-right,
-.window-edge.bottom-left,
-.window-edge.bottom-right {
-    width: 13px;
-    height: 13px;
-}
-
-.window-edge.top-left {
-    top: 0;
-    left: 0;
-    cursor: nwse-resize;
-}
-
-.window-edge.top-right {
-    top: 0;
-    right: 0;
-    cursor: nesw-resize;
-}
-
-.window-edge.bottom-left {
-    bottom: 0;
-    left: 0;
-    cursor: nesw-resize;
-}
-
-.window-edge.bottom-right {
-    bottom: 0;
-    right: 0;
-    cursor: nwse-resize;
-}
-
-.window.maximized .window-edge {
-    display: none;
-}
+/* WINDOWS */
+.window{position:absolute;width:760px;height:520px;max-width:calc(100vw - 30px);max-height:calc(100vh - 75px);top:50%;left:50%;transform:translate(-50%,-50%);background:#191919;border:1px solid #ffffff22;border-radius:9px;box-shadow:0 15px 55px #0008;overflow:hidden;display:none;flex-direction:column;z-index:10}
+.window.active{display:flex}
+.window.maximized{top:0!important;left:0!important;width:100%!important;height:calc(100% - 48px)!important;max-width:none;max-height:none;transform:none!important;border-radius:0}
+.titlebar{height:42px;min-height:42px;background:#202020;display:flex;align-items:center;justify-content:space-between;padding-left:15px;border-bottom:1px solid #ffffff0c;cursor:grab}
+.titlebar:active{cursor:grabbing}
+.window-title{font-size:13px;font-weight:500}
+.window-controls{height:100%;display:flex}
+.window-controls button{width:45px;height:100%;border:0;background:transparent;color:#fff;font-size:14px;cursor:pointer}
+.window-controls button:hover{background:#ffffff20}
+.window-controls .close:hover{background:#c42b2b}
+.window-content{flex:1;min-height:0;display:flex;overflow:hidden}
+.window-content iframe{width:100%;height:100%;border:0;background:#111}
+.settings-content{padding:25px;overflow-y:auto;display:block}
+.section-title,.store-page-title{font-size:21px;font-weight:600;margin-bottom:8px}
+.section-description,.store-page-description{font-size:13px;color:#999;margin-bottom:25px}
+.setting-section{margin-bottom:30px}
+.setting-section h3{font-size:14px;font-weight:600;margin-bottom:12px}
+.setting-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:13px 0;border-bottom:1px solid #ffffff12}
+.setting-row span{font-size:13px;color:#ddd}
+input[type=color]{width:45px;height:30px;border:0;background:transparent;cursor:pointer}
+input[type=range]{width:180px;accent-color:#fff;cursor:pointer}
+.setting-toggle{appearance:none;width:42px;height:24px;border-radius:20px;background:#555;position:relative;cursor:pointer;transition:background .18s;flex-shrink:0}
+.setting-toggle::after{content:"";position:absolute;width:18px;height:18px;top:3px;left:3px;border-radius:50%;background:#fff;transition:transform .18s}
+.setting-toggle:checked{background:#397bd8}
+.setting-toggle:checked::after{transform:translateX(18px)}
+.window-edge{position:absolute;z-index:30;touch-action:none}
+.window-edge.left,.window-edge.right{top:8px;bottom:8px;width:6px;cursor:ew-resize}
+.window-edge.top,.window-edge.bottom{left:8px;right:8px;height:6px;cursor:ns-resize}
+.window-edge.left{left:0}.window-edge.right{right:0}.window-edge.top{top:0}.window-edge.bottom{bottom:0}
+.window-edge.top-left,.window-edge.top-right,.window-edge.bottom-left,.window-edge.bottom-right{width:13px;height:13px}
+.window-edge.top-left{top:0;left:0;cursor:nwse-resize}
+.window-edge.top-right{top:0;right:0;cursor:nesw-resize}
+.window-edge.bottom-left{bottom:0;left:0;cursor:nesw-resize}
+.window-edge.bottom-right{bottom:0;right:0;cursor:nwse-resize}
+.window.maximized .window-edge{display:none}
 
 /* STORE */
-
-.wallpaper-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 15px;
-}
-
-.app-preview {
-    width: 100%;
-    height: 145px;
-    background: #303030;
-    overflow: hidden;
-}
-
-.app-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.app-heading {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-    min-width: 0;
-}
-
-.app-icon {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    flex-shrink: 0;
-}
-
-.app-heading .wallpaper-name {
-    margin: 0;
-}
-
-.wallpaper-card {
-    min-width: 0;
-    background: #252525;
-    border: 1px solid #ffffff12;
-    border-radius: 7px;
-    overflow: hidden;
-}
-
-.preview {
-    width: 100%;
-    height: 115px;
-    background: #333;
-    position: relative;
-    overflow: hidden;
-}
-
-.preview img,
-.preview video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.wallpaper-info {
-    padding: 11px;
-}
-
-.wallpaper-name {
-    font-size: 12px;
-    font-weight: 500;
-    margin-bottom: 9px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.wallpaper-card button,
-.install-button {
-    width: 100%;
-    height: 30px;
-    border: 0;
-    border-radius: 4px;
-    background: #eee;
-    color: #111;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.wallpaper-card button:hover,
-.install-button:hover {
-    background: white;
-}
-
-.wallpaper-card button:disabled {
-    opacity: .55;
-    cursor: default;
-}
-
-.progress {
-    width: 100%;
-    height: 3px;
-    background: #ffffff20;
-    margin-top: 8px;
-    overflow: hidden;
-    display: none;
-}
-
-.progress-fill {
-    width: 0;
-    height: 100%;
-    background: white;
-}
-
-.store-sidebar {
-    width: 165px;
-    min-width: 165px;
-    background: #151515;
-    border-right: 1px solid #ffffff12;
-    padding: 20px 10px;
-}
-
-.sidebar-button {
-    width: 100%;
-    height: 38px;
-    display: flex;
-    align-items: center;
-    padding: 0 12px;
-    border: 0;
-    border-radius: 5px;
-    background: transparent;
-    color: #aaa;
-    font-size: 13px;
-    text-align: left;
-    cursor: pointer;
-    margin-bottom: 5px;
-}
-
-.sidebar-button:hover {
-    background: #ffffff0d;
-    color: white;
-}
-
-.sidebar-button.selected {
-    background: #ffffff16;
-    color: white;
-}
-
-.store-main {
-    flex: 1;
-    min-width: 0;
-    padding: 25px;
-    overflow-y: auto;
-}
-
-.store-page-title {
-    font-size: 21px;
-    font-weight: 600;
-    margin-bottom: 7px;
-}
-
-.store-page-description {
-    font-size: 12px;
-    color: #999;
-    margin-bottom: 22px;
-}
-
-.empty-state {
-    color: #777;
-    font-size: 13px;
-    padding-top: 20px;
-}
-
-/* DATE AND WEATHER PANEL */
-
-#calendarPanel {
-    position: fixed;
-    z-index: 100;
-    right: 12px;
-    bottom: 58px;
-    width: 365px;
-    max-width: calc(100vw - 24px);
-    max-height: calc(100vh - 75px);
-    overflow-y: auto;
-    padding: 20px;
-    border: 1px solid #ffffff20;
-    border-radius: 10px;
-    background: #191919f5;
-    backdrop-filter: blur(25px);
-    box-shadow: 0 15px 50px #0009;
-    display: none;
-}
-
-#calendarPanel.open {
-    display: block;
-    animation: panelIn .15s ease;
-}
-
-@keyframes panelIn {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.calendar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 18px;
-}
-
-.calendar-time {
-    font-size: 32px;
-    font-weight: 600;
-    letter-spacing: -1px;
-}
-
-.calendar-full-date {
-    color: #aaa;
-    font-size: 12px;
-    margin-top: 4px;
-}
-
-.calendar-close {
-    border: 0;
-    background: transparent;
-    color: #aaa;
-    font-size: 22px;
-    cursor: pointer;
-    padding: 0 5px;
-}
-
-.calendar-close:hover {
-    color: white;
-}
-
-.weather-section {
-    background: #ffffff09;
-    border: 1px solid #ffffff10;
-    border-radius: 8px;
-    padding: 14px;
-}
-
-.weather-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.weather-temperature {
-    font-size: 37px;
-    font-weight: 600;
-}
-
-.weather-description {
-    font-size: 12px;
-    color: #ddd;
-    margin-top: 2px;
-}
-
-.weather-location {
-    color: #888;
-    font-size: 11px;
-    margin-top: 5px;
-}
-
-.weather-icon {
-    font-size: 40px;
-    padding-right: 5px;
-}
-
-.weather-details {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-top: 17px;
-    padding-top: 13px;
-    border-top: 1px solid #ffffff12;
-}
-
-.weather-details div {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.weather-details span {
-    font-size: 10px;
-    color: #888;
-}
-
-.weather-details strong {
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.weather-location-controls {
-    display: flex;
-    gap: 6px;
-    margin-top: 15px;
-}
-
-.weather-location-controls input {
-    min-width: 0;
-    flex: 1;
-    height: 31px;
-    padding: 0 9px;
-    border: 1px solid #ffffff20;
-    border-radius: 4px;
-    outline: none;
-    background: #111;
-    color: white;
-    font-size: 11px;
-    user-select: text;
-}
-
-.weather-location-controls input:focus {
-    border-color: #888;
-}
-
-.weather-location-controls button {
-    height: 31px;
-    min-width: 34px;
-    padding: 0 9px;
-    border: 0;
-    border-radius: 4px;
-    background: #eee;
-    color: #111;
-    font-size: 11px;
-    cursor: pointer;
-}
-
-.weather-location-controls button:hover {
-    background: white;
-}
-
-.weather-credit {
-    margin-top: 10px;
-    color: #666;
-    font-size: 9px;
-}
-
-.weather-credit a {
-    color: #999;
-    text-decoration: none;
-}
-
-.weather-credit a:hover {
-    color: white;
-}
-
-.calendar-divider {
-    height: 1px;
-    background: #ffffff16;
-    margin: 17px 0;
-}
-
-.calendar-navigation {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 13px;
-}
-
-.calendar-month {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.calendar-arrows {
-    display: flex;
-    gap: 5px;
-}
-
-.calendar-arrows button {
-    width: 27px;
-    height: 27px;
-    border: 0;
-    border-radius: 4px;
-    background: #ffffff10;
-    color: white;
-    font-size: 19px;
-    cursor: pointer;
-}
-
-.calendar-arrows button:hover {
-    background: #ffffff25;
-}
-
-.calendar-weekdays,
-.calendar-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    text-align: center;
-}
-
-.calendar-weekdays {
-    margin-bottom: 7px;
-}
-
-.calendar-weekdays span {
-    color: #777;
-    font-size: 10px;
-    padding: 5px 0;
-}
-
-.calendar-day {
-    height: 38px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 11px;
-    position: relative;
-}
-
-.calendar-day:hover {
-    background: #ffffff18;
-}
-
-.calendar-day.other-month {
-    color: #555;
-}
-
-.calendar-day.today {
-    border: 1px solid #777;
-}
-
-.calendar-day.selected {
-    background: #eee;
-    color: #111;
-}
-
-.calendar-day .holiday-dot {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: #75a9ff;
-}
-
-.calendar-day.selected .holiday-dot {
-    background: #397bd8;
-}
-
-.calendar-event-heading {
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 10px;
-}
-
-.calendar-event {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 0;
-    border-bottom: 1px solid #ffffff10;
-}
-
-.calendar-event:last-child {
-    border-bottom: 0;
-}
-
-.event-marker {
-    width: 3px;
-    height: 29px;
-    border-radius: 3px;
-    background: #75a9ff;
-    flex-shrink: 0;
-}
-
-.event-name {
-    font-size: 11px;
-    font-weight: 500;
-}
-
-.event-description {
-    font-size: 10px;
-    color: #888;
-    margin-top: 3px;
-}
-
-.no-events {
-    font-size: 11px;
-    color: #777;
-    padding: 5px 0;
-}
-
-@media (max-width: 600px) {
-    .window {
-        width: calc(100vw - 16px);
-        height: calc(100vh - 65px);
-    }
-
-    .store-sidebar {
-        width: 115px;
-        min-width: 115px;
-    }
-
-    .store-main,
-    .settings-content {
-        padding: 15px;
-    }
-
-    .wallpaper-grid {
-        grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
-    }
-
-    #calendarPanel {
-        right: 8px;
-        bottom: 55px;
-        width: 365px;
-    }
+.wallpaper-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:15px}
+.wallpaper-card{min-width:0;background:#252525;border:1px solid #ffffff12;border-radius:7px;overflow:hidden}
+.preview{width:100%;height:115px;background:#333;position:relative;overflow:hidden}
+.preview.app{height:145px;background:#303030}
+.preview img,.preview video{width:100%;height:100%;object-fit:cover;display:block}
+.wallpaper-info{padding:11px}
+.app-heading{display:flex;align-items:center;gap:10px;margin-bottom:10px;min-width:0}
+.app-icon{width:32px;height:32px;object-fit:contain;flex-shrink:0}
+.wallpaper-name{font-size:12px;font-weight:500;margin-bottom:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app-heading .wallpaper-name{margin:0}
+.wallpaper-card button{width:100%;height:30px;border:0;border-radius:4px;background:#eee;color:#111;font-size:11px;font-weight:600;cursor:pointer}
+.wallpaper-card button:hover{background:#fff}
+.wallpaper-card button:disabled{opacity:.55;cursor:default}
+.progress{width:100%;height:3px;background:#ffffff20;margin-top:8px;overflow:hidden;display:none}
+.progress-fill{width:0;height:100%;background:#fff}
+.store-sidebar{width:165px;min-width:165px;background:#151515;border-right:1px solid #ffffff12;padding:20px 10px}
+.sidebar-button{width:100%;height:38px;display:flex;align-items:center;padding:0 12px;border:0;border-radius:5px;background:transparent;color:#aaa;font-size:13px;text-align:left;cursor:pointer;margin-bottom:5px}
+.sidebar-button:hover{background:#ffffff0d;color:#fff}
+.sidebar-button.selected{background:#ffffff16;color:#fff}
+.store-main{flex:1;min-width:0;padding:25px;overflow-y:auto}
+.store-page-title{margin-bottom:7px}
+.store-page-description{font-size:12px;margin-bottom:22px}
+.empty-state{color:#777;font-size:13px;padding-top:20px}
+
+/* DATE + WEATHER PANEL */
+#calendarPanel{position:fixed;z-index:100;right:12px;bottom:58px;width:365px;max-width:calc(100vw - 24px);max-height:calc(100vh - 75px);overflow-y:auto;padding:20px;border:1px solid #ffffff20;border-radius:10px;background:#191919f5;backdrop-filter:blur(25px);box-shadow:0 15px 50px #0009;display:none}
+#calendarPanel.open{display:block;animation:panelIn .15s ease}
+@keyframes panelIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.calendar-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.calendar-time{font-size:32px;font-weight:600;letter-spacing:-1px}
+.calendar-full-date{color:#aaa;font-size:12px;margin-top:4px}
+.calendar-close{border:0;background:transparent;color:#aaa;font-size:22px;cursor:pointer;padding:0 5px}
+.calendar-close:hover{color:#fff}
+.weather-section{background:#ffffff09;border:1px solid #ffffff10;border-radius:8px;padding:14px}
+.weather-top{display:flex;justify-content:space-between;align-items:center}
+.weather-temperature{font-size:37px;font-weight:600}
+.weather-description{font-size:12px;color:#ddd;margin-top:2px}
+.weather-location{color:#888;font-size:11px;margin-top:5px}
+.weather-icon{font-size:40px;padding-right:5px}
+.weather-details{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:17px;padding-top:13px;border-top:1px solid #ffffff12}
+.weather-details div{display:flex;flex-direction:column;gap:5px}
+.weather-details span{font-size:10px;color:#888}
+.weather-details strong{font-size:12px;font-weight:500}
+.weather-location-controls{display:flex;gap:6px;margin-top:15px}
+.weather-location-controls input{min-width:0;flex:1;height:31px;padding:0 9px;border:1px solid #ffffff20;border-radius:4px;outline:none;background:#111;color:#fff;font-size:11px;user-select:text}
+.weather-location-controls input:focus{border-color:#888}
+.weather-location-controls button{height:31px;min-width:34px;padding:0 9px;border:0;border-radius:4px;background:#eee;color:#111;font-size:11px;cursor:pointer}
+.weather-location-controls button:hover{background:#fff}
+.weather-credit{margin-top:10px;color:#666;font-size:9px}
+.weather-credit a{color:#999;text-decoration:none}
+.weather-credit a:hover{color:#fff}
+.calendar-divider{height:1px;background:#ffffff16;margin:17px 0}
+.calendar-navigation{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}
+.calendar-month{font-size:14px;font-weight:600}
+.calendar-arrows{display:flex;gap:5px}
+.calendar-arrows button{width:27px;height:27px;border:0;border-radius:4px;background:#ffffff10;color:#fff;font-size:19px;cursor:pointer}
+.calendar-arrows button:hover{background:#ffffff25}
+.calendar-weekdays,.calendar-days{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}
+.calendar-weekdays{margin-bottom:7px}
+.calendar-weekdays span{color:#777;font-size:10px;padding:5px 0}
+.calendar-day{height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:5px;cursor:pointer;font-size:11px}
+.calendar-day:hover{background:#ffffff18}
+.calendar-day.other-month{color:#555}
+.calendar-day.today{border:1px solid #777}
+.calendar-day.selected{background:#eee;color:#111}
+.holiday-dot{width:4px;height:4px;border-radius:50%;background:#75a9ff}
+.calendar-day.selected .holiday-dot{background:#397bd8}
+.calendar-event-heading{font-size:12px;font-weight:600;margin-bottom:10px}
+.calendar-event{display:flex;align-items:center;gap:10px;padding:9px 0}
+.event-marker{width:3px;height:29px;border-radius:3px;background:#75a9ff;flex-shrink:0}
+.event-name{font-size:11px;font-weight:500}
+.event-description{font-size:10px;color:#888;margin-top:3px}
+.no-events{font-size:11px;color:#777;padding:5px 0}
+
+/* ANNOUNCEMENT */
+#announcement{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;background:#0009;backdrop-filter:blur(6px);animation:fadeIn .3s ease;transition:opacity .5s ease}
+#announcement.hide{opacity:0;pointer-events:none}
+.announce-card{width:380px;max-width:100%;padding:26px;border:1px solid #ffffff20;border-radius:12px;background:#191919;box-shadow:0 20px 60px #000a;animation:cardIn .35s cubic-bezier(.2,.9,.3,1.2)}
+.announce-card h2{font-size:20px;font-weight:600;margin-bottom:10px}
+.announce-card p{font-size:14px;line-height:1.5;color:#bbb;margin-bottom:22px}
+#ackBtn{position:relative;width:100%;height:40px;border:0;border-radius:6px;background:#eee;color:#111;font-size:13px;font-weight:600;cursor:pointer;overflow:hidden;transition:background .2s}
+#ackBtn:hover{background:#fff}
+#ackBtn .label{display:inline-block;transition:transform .3s ease,opacity .3s ease}
+#ackBtn svg{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;opacity:0}
+#ackBtn.done{pointer-events:none;background:#4caf6e}
+#ackBtn.done .label{transform:scaleX(0);opacity:0}
+#ackBtn.done svg{animation:checkBounce .6s .25s cubic-bezier(.3,1.4,.5,1) forwards}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes cardIn{from{opacity:0;transform:scale(.92) translateY(10px)}to{opacity:1;transform:none}}
+@keyframes checkBounce{0%{opacity:0;transform:translateY(18px) scale(.4)}60%{opacity:1;transform:translateY(-6px) scale(1.15)}100%{opacity:1;transform:none}}
+
+@media(max-width:600px){
+.window{width:calc(100vw - 16px);height:calc(100vh - 65px)}
+.store-sidebar{width:115px;min-width:115px}
+.store-main,.settings-content{padding:15px}
+.wallpaper-grid{grid-template-columns:repeat(auto-fill,minmax(135px,1fr))}
+#calendarPanel{right:8px;bottom:55px}
 }
 </style>
 </head>
-
 <body>
 
 <div id="wallpaper"></div>
 <div id="wallpaperBlur"></div>
 
 <div class="desktop">
-
-    <div class="desktop-icon" id="appStoreDesktopIcon" data-desktop-id="app-store">
-        <img src="Resources/Icons/AppStore.png" alt="App Store">
-        <span>App Store</span>
+    <div class="desktop-icon" id="appStoreDesktopIcon">
+        <img src="Resources/Icons/AppStore.png" alt="App Store"><span>App Store</span>
     </div>
-
-    <div class="desktop-icon" id="settingsDesktopIcon" data-desktop-id="settings">
-        <img src="https://raw.githubusercontent.com/Timmers437283/beacon/main/Resources/Icons/settingscover.png" alt="Settings">
-        <span>Settings</span>
+    <div class="desktop-icon" id="settingsDesktopIcon">
+        <img src="https://raw.githubusercontent.com/Timmers437283/beacon/main/Resources/Icons/settingscover.png" alt="Settings"><span>Settings</span>
     </div>
-
     <div id="desktopApps"></div>
-
     <div class="taskbar">
-        <div class="clock" id="taskbarClock" onclick="toggleCalendar()" title="Date and time">
-            <div id="clockTime"></div>
-            <div id="clockDate"></div>
+        <div class="clock" id="taskbarClock" title="Date and time">
+            <div id="clockTime"></div><div id="clockDate"></div>
         </div>
     </div>
-
 </div>
-
-<!-- DATE AND WEATHER PANEL -->
 
 <div id="calendarPanel">
     <div class="calendar-header">
-        <div>
-            <div class="calendar-time" id="panelTime"></div>
-            <div class="calendar-full-date" id="panelDate"></div>
-        </div>
-        <button class="calendar-close" onclick="toggleCalendar()">×</button>
+        <div><div class="calendar-time" id="panelTime"></div><div class="calendar-full-date" id="panelDate"></div></div>
+        <button class="calendar-close" id="calendarClose">×</button>
     </div>
-
     <div class="weather-section">
         <div class="weather-top">
             <div>
@@ -963,1510 +195,538 @@ input[type="range"] {
             </div>
             <div class="weather-icon" id="weatherIcon">☁</div>
         </div>
-
         <div class="weather-details">
-            <div>
-                <span>Feels like</span>
-                <strong id="weatherFeels">--°</strong>
-            </div>
-            <div>
-                <span>Wind</span>
-                <strong id="weatherWind">--</strong>
-            </div>
-            <div>
-                <span>Humidity</span>
-                <strong id="weatherHumidity">--%</strong>
-            </div>
+            <div><span>Feels like</span><strong id="weatherFeels">--°</strong></div>
+            <div><span>Wind</span><strong id="weatherWind">--</strong></div>
+            <div><span>Humidity</span><strong id="weatherHumidity">--%</strong></div>
         </div>
-
         <div class="weather-location-controls">
             <input id="weatherCityInput" placeholder="Enter a city..." type="text">
-            <button onclick="searchWeather()">Go</button>
-            <button onclick="useMyLocation()" title="Use my location">⌖</button>
+            <button id="weatherGo">Go</button>
+            <button id="weatherLocate" title="Use my location">⌖</button>
         </div>
-
-        <div class="weather-credit">
-            Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>
-        </div>
+        <div class="weather-credit">Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></div>
     </div>
-
     <div class="calendar-divider"></div>
-
     <div class="calendar-navigation">
         <div class="calendar-month" id="calendarMonth"></div>
-        <div class="calendar-arrows">
-            <button onclick="changeCalendarMonth(-1)">‹</button>
-            <button onclick="changeCalendarMonth(1)">›</button>
-        </div>
+        <div class="calendar-arrows"><button data-month="-1">‹</button><button data-month="1">›</button></div>
     </div>
-
-    <div class="calendar-weekdays">
-        <span>Sun</span>
-        <span>Mon</span>
-        <span>Tue</span>
-        <span>Wed</span>
-        <span>Thu</span>
-        <span>Fri</span>
-        <span>Sat</span>
-    </div>
-
+    <div class="calendar-weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
     <div class="calendar-days" id="calendarDays"></div>
-
     <div class="calendar-divider"></div>
-
-    <div class="calendar-event-section">
-        <div class="calendar-event-heading">What's happening</div>
-        <div id="calendarEventList"></div>
-    </div>
+    <div class="calendar-event-heading">What's happening</div>
+    <div id="calendarEventList"></div>
 </div>
 
-<!-- SETTINGS -->
-
-<div class="window" id="settingsWindow">
-    <div class="titlebar">
-        <span class="window-title">Settings</span>
-        <div class="window-controls">
-            <button onclick="minimizeWindow('settingsWindow')">−</button>
-            <button onclick="maximizeWindow('settingsWindow')">□</button>
-            <button class="close" onclick="closeWindow('settingsWindow')">×</button>
-        </div>
-    </div>
-
-    <div class="window-content settings-content">
-        <div class="section-title">Settings</div>
-        <div class="section-description">Personalize your desktop.</div>
-
-        <div class="setting-section">
-            <h3>Appearance</h3>
-            <div class="setting-row">
-                <span>Background color</span>
-                <input type="color" id="backgroundColor" value="#202020">
-            </div>
-            <div class="setting-row">
-                <span>Background blur</span>
-                <input type="range" id="blurSlider" min="0" max="30" value="0">
-            </div>
-        </div>
-
-        <div class="setting-section">
-            <h3>Desktop</h3>
-            <div class="setting-row">
-                <span>Snap apps into place</span>
-                <input class="setting-toggle" type="checkbox" id="snapAppsToggle" checked>
-            </div>
-        </div>
-
-        <div class="setting-section">
-            <h3>Installed wallpapers</h3>
-            <div class="wallpaper-grid" id="installedGrid"></div>
-        </div>
-    </div>
-</div>
-
-<!-- APP STORE -->
-
-<div class="window" id="storeWindow">
-    <div class="titlebar">
-        <span class="window-title">App Store</span>
-        <div class="window-controls">
-            <button onclick="minimizeWindow('storeWindow')">−</button>
-            <button onclick="maximizeWindow('storeWindow')">□</button>
-            <button class="close" onclick="closeWindow('storeWindow')">×</button>
-        </div>
-    </div>
-
-    <div class="window-content">
-        <div class="store-sidebar">
-            <button class="sidebar-button selected" id="appsTab" onclick="showStoreTab('apps')">Apps</button>
-            <button class="sidebar-button" id="wallpapersTab" onclick="showStoreTab('wallpapers')">Wallpapers</button>
-        </div>
-
-        <div class="store-main">
-            <div id="appsPage">
-                <div class="store-page-title">Apps</div>
-                <div class="store-page-description">Browse and install apps for your desktop.</div>
-                <div class="wallpaper-grid" id="appsGrid"></div>
-            </div>
-
-            <div id="wallpapersPage" style="display:none">
-                <div class="store-page-title">Wallpapers</div>
-                <div class="store-page-description">Browse and install wallpapers for your desktop.</div>
-                <div class="wallpaper-grid" id="storeGrid"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- MOVIUM -->
-
-<div class="window" id="moviumWindow">
-    <div class="titlebar">
-        <span class="window-title">Movium</span>
-        <div class="window-controls">
-            <button onclick="minimizeWindow('moviumWindow')">−</button>
-            <button onclick="maximizeWindow('moviumWindow')">□</button>
-            <button class="close" onclick="closeWindow('moviumWindow')">×</button>
-        </div>
-    </div>
-
-    <div class="window-content" style="display:block;background:#111">
-        <iframe src="Resources/AppBase/Movium/index.html" title="Movium" style="width:100%;height:100%;border:0;background:#111"></iframe>
-    </div>
-</div>
-
-<!-- MUSIFY -->
-
-<div class="window" id="musifyWindow">
-    <div class="titlebar">
-        <span class="window-title">Musify</span>
-        <div class="window-controls">
-            <button onclick="minimizeWindow('musifyWindow')">−</button>
-            <button onclick="maximizeWindow('musifyWindow')">□</button>
-            <button class="close" onclick="closeWindow('musifyWindow')">×</button>
-        </div>
-    </div>
-
-    <div class="window-content" style="display:block;background:#111">
-        <iframe src="https://timmers437283.github.io/Musify/" title="Musify" style="width:100%;height:100%;border:0;background:#111"></iframe>
-    </div>
-</div>
-
-<!-- ChatGPT -->
-
-<div class="window" id="chatgptWindow">
-    <div class="titlebar">
-        <span class="window-title">ChatGPT</span>
-        <div class="window-controls">
-            <button onclick="minimizeWindow('chatgptWindow')">−</button>
-            <button onclick="maximizeWindow('chatgptWindow')">□</button>
-            <button class="close" onclick="closeWindow('chatgptWindow')">×</button>
-        </div>
-    </div>
-
-    <div class="window-content" style="display:block;background:#111">
-        <iframe src="Resources/AppBase/ChatGPT/index.html" title="ChatGPT" style="width:100%;height:100%;border:0;background:#111"></iframe>
-    </div>
-</div>
-
-<!-- CELIO -->
-
-<div class="window" id="celioWindow">
-    <div class="titlebar">
-        <span class="window-title">Celio</span>
-        <div class="window-controls">
-            <button onclick="minimizeWindow('celioWindow')">−</button>
-            <button onclick="maximizeWindow('celioWindow')">□</button>
-            <button class="close" onclick="closeWindow('celioWindow')">×</button>
-        </div>
-    </div>
-
-    <div class="window-content" style="display:block;background:#111">
-        <iframe src="https://timmers437283.github.io/Celio/" title="Celio" style="width:100%;height:100%;border:0;background:#111"></iframe>
-    </div>
-</div>
-
-<!-- NGAMES -->
-
-<div class="window" id="ngamesWindow">
-    <div class="titlebar">
-        <span class="window-title">NGames</span>
-        <div class="window-controls">
-            <button onclick="minimizeWindow('ngamesWindow')">−</button>
-            <button onclick="maximizeWindow('ngamesWindow')">□</button>
-            <button class="close" onclick="closeWindow('ngamesWindow')">×</button>
-        </div>
-    </div>
-
-    <div class="window-content" style="display:block;background:#111">
-        <iframe src="Resources/AppBase/NGames/NGames.html" title="NGames" style="width:100%;height:100%;border:0;background:#111"></iframe>
-    </div>
-</div>
-
-<!-- SOUNDTRAP -->
-
-<div class="window" id="soundtrapWindow">
-    <div class="titlebar">
-        <span class="window-title">Soundtrap</span>
-        <div class="window-controls">
-            <button onclick="minimizeWindow('soundtrapWindow')">−</button>
-            <button onclick="maximizeWindow('soundtrapWindow')">□</button>
-            <button class="close" onclick="closeWindow('soundtrapWindow')">×</button>
-        </div>
-    </div>
-
-    <div class="window-content" style="display:block;background:#111">
-        <iframe src="https://www.soundtrap.com/home/" title="Soundtrap" style="width:100%;height:100%;border:0;background:#111"></iframe>
+<!-- ANNOUNCEMENT -->
+<div id="announcement">
+    <div class="announce-card">
+        <h2>Announcement</h2>
+        <p>I'm updating this page throughout the day, if something breaks I'll fix it..</p>
+        <button id="ackBtn">
+            <span class="label">Understood</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </button>
     </div>
 </div>
 
 <script src="steam.js"></script>
-
 <script>
-const wallpaperElement = document.getElementById("wallpaper");
-const blurElement = document.getElementById("wallpaperBlur");
+const $ = id => document.getElementById(id);
+const store = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+const put = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const raw = (k, d) => localStorage.getItem(k) || d;
+const GH = "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/";
 
-let wallpaperFiles = [];
-
-let installedWallpapers = JSON.parse(
-    localStorage.getItem("installedWallpapers") || "[]"
-);
-
-let installedApps = [];
-
-try {
-    installedApps = JSON.parse(localStorage.getItem("installedApps") || "[]");
-    if (!Array.isArray(installedApps)) installedApps = [];
-} catch (error) {
-    installedApps = [];
-}
-
-/* AVAILABLE APPS */
-
+/* APPS */
 const availableApps = [
-    {
-        id: "movium",
-        name: "Movium",
-        icon: "Resources/AppBase/Movium/Movium.png",
-        preview: "Resources/AppBase/Movium/Preview.png",
-        windowId: "moviumWindow"
-    },
-    {
-        id: "musify",
-        name: "Musify",
-        icon: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/Musify/Musify.png",
-        preview: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/Musify/Preview.png",
-        windowId: "musifyWindow"
-    },
-     {
-        id: "celio",
-        name: "Celio",
-        icon: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/Celio/Celio.png",
-        preview: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/Celio/Preview.png",
-        windowId: "celioWindow"
-     },
-    {
-        id: "soundtrap",
-        name: "Soundtrap",
-        icon: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/Soundtrap/cover.png",
-        preview: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/Soundtrap/Preview.png",
-        windowId: "soundtrapWindow"
-    },
-    {
-        id: "chatgpt",
-        name: "ChatGPT",
-        icon: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/ChatGPT/chatgpt.png",
-        preview: "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/ChatGPT/Preview.png",
-        windowId: "chatgptWindow"
-    },
-    {
-        id: "steam",
-        name: "Steam",
-        icon: "Resources/AppBase/Steam/Steam.png",
-        preview: "Resources/AppBase/Steam/Preview.png",
-        windowId: "steamWindow"
-    },
-     {
-        id: "ngames",
-        name: "NGames",
-        icon: "Resources/AppBase/NGames/small.png",
-        preview: "Resources/AppBase/NGames/Preview.png",
-        windowId: "ngamesWindow"
-    }
+    {id:"movium",   name:"Movium",    icon:"Resources/AppBase/Movium/Movium.png", preview:"Resources/AppBase/Movium/Preview.png", src:"Resources/AppBase/Movium/index.html"},
+    {id:"musify",   name:"Musify",    icon:GH+"Musify/Musify.png",    preview:GH+"Musify/Preview.png",    src:"https://timmers437283.github.io/Musify/"},
+    {id:"celio",    name:"Celio",     icon:GH+"Celio/Celio.png",      preview:GH+"Celio/Preview.png",     src:"https://timmers437283.github.io/Celio/"},
+    {id:"soundtrap",name:"Soundtrap", icon:GH+"Soundtrap/cover.png",  preview:GH+"Soundtrap/Preview.png", src:"https://www.soundtrap.com/home/"},
+    {id:"chatgpt",  name:"ChatGPT",   icon:GH+"ChatGPT/chatgpt.png",  preview:GH+"ChatGPT/Preview.png",   src:"Resources/AppBase/ChatGPT/index.html"},
+    {id:"steam",    name:"Steam",     icon:"Resources/AppBase/Steam/Steam.png",   preview:"Resources/AppBase/Steam/Preview.png"},
+    {id:"ngames",   name:"NGames",    icon:"Resources/AppBase/NGames/small.png",  preview:"Resources/AppBase/NGames/Preview.png", src:"Resources/AppBase/NGames/NGames.html"}
 ];
+availableApps.forEach(a => a.windowId = a.id + "Window");
 
-let desktopIconPositions = {};
-
-try {
-    desktopIconPositions = JSON.parse(
-        localStorage.getItem("desktopIconPositions") || "{}"
-    );
-
-    if (!desktopIconPositions || typeof desktopIconPositions !== "object") {
-        desktopIconPositions = {};
-    }
-} catch (error) {
-    desktopIconPositions = {};
-}
-
+/* STATE */
 const defaultWallpaper = "Windows_11.jpg";
-
-if (!installedWallpapers.includes(defaultWallpaper)) {
-    installedWallpapers.push(defaultWallpaper);
-    localStorage.setItem("installedWallpapers", JSON.stringify(installedWallpapers));
-}
-
-let currentWallpaper = localStorage.getItem("desktopWallpaper") || defaultWallpaper;
-let currentColor = localStorage.getItem("desktopColor") || "#202020";
-let currentBlur = localStorage.getItem("desktopBlur") || "0";
-
-let highestWindow = 10;
+let wallpaperFiles = [];
+let installedWallpapers = store("installedWallpapers", []);
+let installedApps = store("installedApps", []);
+let iconPositions = store("desktopIconPositions", {});
+if (!Array.isArray(installedApps)) installedApps = [];
+if (!installedWallpapers.includes(defaultWallpaper)) { installedWallpapers.push(defaultWallpaper); put("installedWallpapers", installedWallpapers); }
+let currentWallpaper = raw("desktopWallpaper", defaultWallpaper);
+let currentColor = raw("desktopColor", "#202020");
+let currentBlur = raw("desktopBlur", "0");
 let snapApps = localStorage.getItem("snapDesktopApps") !== "false";
+let highestWindow = 10, windowOpenCount = 0;
+
+/* WINDOWS (generated) */
+const controls = '<div class="window-controls"><button data-act="min">−</button><button data-act="max">□</button><button class="close" data-act="close">×</button></div>';
+const addWindow = (id, title, body, contentClass = "window-content") =>
+    document.body.insertAdjacentHTML("beforeend",
+        `<div class="window" id="${id}"><div class="titlebar"><span class="window-title">${title}</span>${controls}</div><div class="${contentClass}">${body}</div></div>`);
+
+addWindow("settingsWindow", "Settings", `
+    <div class="section-title">Settings</div>
+    <div class="section-description">Personalize your desktop.</div>
+    <div class="setting-section"><h3>Appearance</h3>
+        <div class="setting-row"><span>Background color</span><input type="color" id="backgroundColor" value="#202020"></div>
+        <div class="setting-row"><span>Background blur</span><input type="range" id="blurSlider" min="0" max="30" value="0"></div>
+    </div>
+    <div class="setting-section"><h3>Desktop</h3>
+        <div class="setting-row"><span>Snap apps into place</span><input class="setting-toggle" type="checkbox" id="snapAppsToggle" checked></div>
+    </div>
+    <div class="setting-section"><h3>Installed wallpapers</h3><div class="wallpaper-grid" id="installedGrid"></div></div>`,
+    "window-content settings-content");
+
+addWindow("storeWindow", "App Store", `
+    <div class="store-sidebar">
+        <button class="sidebar-button selected" id="appsTab">Apps</button>
+        <button class="sidebar-button" id="wallpapersTab">Wallpapers</button>
+    </div>
+    <div class="store-main">
+        <div id="appsPage"><div class="store-page-title">Apps</div><div class="store-page-description">Browse and install apps for your desktop.</div><div class="wallpaper-grid" id="appsGrid"></div></div>
+        <div id="wallpapersPage" style="display:none"><div class="store-page-title">Wallpapers</div><div class="store-page-description">Browse and install wallpapers for your desktop.</div><div class="wallpaper-grid" id="storeGrid"></div></div>
+    </div>`);
+
+availableApps.filter(a => a.src).forEach(a =>
+    addWindow(a.windowId, a.name, `<iframe src="${a.src}" title="${a.name}"></iframe>`, "window-content\" style=\"display:block;background:#111"));
+
+const winEl = id => $(id);
+const openWindow = id => {
+    const win = winEl(id);
+    if (!win) return;
+    const wasOpen = win.classList.contains("active");
+    win.classList.add("active");
+    if (!wasOpen && !win.classList.contains("maximized")) {
+        const off = (windowOpenCount++ % 7) * 28;
+        const r = win.getBoundingClientRect();
+        const w = r.width || Math.min(760, innerWidth - 30), h = r.height || Math.min(520, innerHeight - 75);
+        win.style.transform = "none";
+        win.style.left = Math.max(10, Math.min((innerWidth - w) / 2 + off, innerWidth - w - 10)) + "px";
+        win.style.top = Math.max(10, Math.min((innerHeight - h) / 2 + off, innerHeight - h - 58)) + "px";
+    }
+    win.style.zIndex = ++highestWindow;
+};
+
+document.addEventListener("click", e => {
+    const b = e.target.closest("[data-act]");
+    if (!b) return;
+    const win = b.closest(".window");
+    if (b.dataset.act === "max") { win.classList.toggle("maximized"); win.style.zIndex = ++highestWindow; }
+    else win.classList.remove("active");
+});
+
+/* resize + drag for every window */
+document.querySelectorAll(".window").forEach(win => {
+    ["top","bottom","left","right","top-left","top-right","bottom-left","bottom-right"].forEach(edge => {
+        const h = document.createElement("div");
+        h.className = "window-edge " + edge;
+        win.appendChild(h);
+        let on = false, sx, sy, r;
+        h.addEventListener("pointerdown", e => {
+            if (win.classList.contains("maximized") || !win.classList.contains("active") || e.button !== 0) return;
+            e.preventDefault(); e.stopPropagation();
+            on = true; sx = e.clientX; sy = e.clientY; r = win.getBoundingClientRect();
+            win.style.transform = "none";
+            win.style.left = r.left + "px"; win.style.top = r.top + "px";
+            win.style.zIndex = ++highestWindow;
+            h.setPointerCapture(e.pointerId);
+        });
+        h.addEventListener("pointermove", e => {
+            if (!on) return;
+            const dx = e.clientX - sx, dy = e.clientY - sy, minW = 360, minH = 240;
+            let l = r.left, t = r.top, rt = r.right, b = r.bottom;
+            if (edge.includes("left")) l += dx;
+            if (edge.includes("right")) rt += dx;
+            if (edge.includes("top")) t += dy;
+            if (edge.includes("bottom")) b += dy;
+            l = Math.max(0, Math.min(l, innerWidth - minW));
+            t = Math.max(0, Math.min(t, innerHeight - 48 - minH));
+            rt = Math.max(l + minW, Math.min(rt, innerWidth));
+            b = Math.max(t + minH, Math.min(b, innerHeight - 48));
+            Object.assign(win.style, {left: l + "px", top: t + "px", width: rt - l + "px", height: b - t + "px"});
+        });
+        ["pointerup","pointercancel","lostpointercapture"].forEach(ev => h.addEventListener(ev, () => on = false));
+    });
+
+    const bar = win.querySelector(".titlebar");
+    let drag = false, ox, oy;
+    bar.addEventListener("pointerdown", e => {
+        if (e.target.closest(".window-controls") || win.classList.contains("maximized") || e.button !== 0) return;
+        drag = true; win.style.zIndex = ++highestWindow;
+        const r = win.getBoundingClientRect();
+        ox = e.clientX - r.left; oy = e.clientY - r.top;
+        win.style.transform = "none"; win.style.left = r.left + "px"; win.style.top = r.top + "px";
+        bar.setPointerCapture(e.pointerId);
+    });
+    bar.addEventListener("pointermove", e => {
+        if (!drag) return;
+        win.style.left = Math.max(0, Math.min(e.clientX - ox, innerWidth - win.offsetWidth)) + "px";
+        win.style.top = Math.max(0, Math.min(e.clientY - oy, innerHeight - 80)) + "px";
+    });
+    ["pointerup","pointercancel"].forEach(ev => bar.addEventListener(ev, () => drag = false));
+});
 
 /* CLOCK */
-
-function updateClock() {
-    const now = new Date();
-
-    const time = now.toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit"
-    });
-
-    const date = now.toLocaleDateString([], {
-        month: "numeric",
-        day: "numeric",
-        year: "numeric"
-    });
-
-    document.getElementById("clockTime").textContent = time;
-    document.getElementById("clockDate").textContent = date;
-
-    document.getElementById("panelTime").textContent = time;
-    document.getElementById("panelDate").textContent =
-        now.toLocaleDateString([], {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-            year: "numeric"
-        });
-}
-
+const updateClock = () => {
+    const now = new Date(), time = now.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+    $("clockTime").textContent = $("panelTime").textContent = time;
+    $("clockDate").textContent = now.toLocaleDateString([], {month:"numeric", day:"numeric", year:"numeric"});
+    $("panelDate").textContent = now.toLocaleDateString([], {weekday:"long", month:"long", day:"numeric", year:"numeric"});
+};
 updateClock();
 setInterval(updateClock, 1000);
 
 /* CALENDAR */
+let calendarDate = new Date(), selectedDate = new Date();
+const dateKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const nth = (y, m, wd, n) => new Date(y, m, 1 + (wd - new Date(y, m, 1).getDay() + 7) % 7 + (n - 1) * 7);
 
-let calendarDate = new Date();
-let selectedCalendarDate = new Date();
-
-function formatCalendarDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-}
-
-function nthWeekday(year, month, weekday, n) {
-    const date = new Date(year, month, 1);
-    const offset = (weekday - date.getDay() + 7) % 7;
-    return new Date(year, month, 1 + offset + (n - 1) * 7);
-}
-
-function lastWeekday(year, month, weekday) {
-    const date = new Date(year, month + 1, 0);
-    const offset = (date.getDay() - weekday + 7) % 7;
-    return new Date(year, month + 1, -offset);
-}
-
-function getHolidayDates(year) {
-    const holidays = {};
-
-    function add(date, name, description) {
-        holidays[formatCalendarDate(date)] = { name, description };
-    }
-
-    add(new Date(year, 0, 1), "New Year's Day", "Federal holiday");
-    add(nthWeekday(year, 0, 1, 3), "Martin Luther King Jr. Day", "Federal holiday");
-    add(nthWeekday(year, 1, 1, 3), "Presidents' Day", "Federal holiday");
-    add(lastWeekday(year, 4, 1), "Memorial Day", "Federal holiday");
-    add(new Date(year, 5, 19), "Juneteenth", "Federal holiday");
-    add(new Date(year, 6, 4), "Independence Day", "Federal holiday");
-    add(nthWeekday(year, 8, 1, 1), "Labor Day", "Federal holiday");
-    add(nthWeekday(year, 9, 1, 2), "Columbus Day", "Federal holiday");
-    add(new Date(year, 10, 11), "Veterans Day", "Federal holiday");
-    add(nthWeekday(year, 10, 4, 4), "Thanksgiving Day", "Federal holiday");
-    add(new Date(year, 11, 25), "Christmas Day", "Federal holiday");
-
-    return holidays;
-}
-
-function getEventsForDate(date) {
-    const year = date.getFullYear();
-    const holidays = getHolidayDates(year);
-    const key = formatCalendarDate(date);
-
-    if (holidays[key]) return [holidays[key]];
-
-    return [];
+function holidays(y) {
+    const memorial = new Date(y, 4, 31 - (new Date(y, 4, 31).getDay() + 6) % 7);
+    return Object.fromEntries([
+        [new Date(y, 0, 1), "New Year's Day"], [nth(y, 0, 1, 3), "Martin Luther King Jr. Day"],
+        [nth(y, 1, 1, 3), "Presidents' Day"], [memorial, "Memorial Day"],
+        [new Date(y, 5, 19), "Juneteenth"], [new Date(y, 6, 4), "Independence Day"],
+        [nth(y, 8, 1, 1), "Labor Day"], [nth(y, 9, 1, 2), "Columbus Day"],
+        [new Date(y, 10, 11), "Veterans Day"], [nth(y, 10, 4, 4), "Thanksgiving Day"],
+        [new Date(y, 11, 25), "Christmas Day"]
+    ].map(([d, n]) => [dateKey(d), n]));
 }
 
 function renderCalendar() {
-    const year = calendarDate.getFullYear();
-    const month = calendarDate.getMonth();
-
-    document.getElementById("calendarMonth").textContent =
-        calendarDate.toLocaleDateString([], {
-            month: "long",
-            year: "numeric"
-        });
-
-    const grid = document.getElementById("calendarDays");
+    const y = calendarDate.getFullYear(), m = calendarDate.getMonth();
+    $("calendarMonth").textContent = calendarDate.toLocaleDateString([], {month:"long", year:"numeric"});
+    const grid = $("calendarDays"), start = new Date(y, m, 1 - new Date(y, m, 1).getDay());
+    const today = dateKey(new Date()), sel = dateKey(selectedDate);
     grid.innerHTML = "";
-
-    const firstDay = new Date(year, month, 1);
-    const startDay = firstDay.getDay();
-    const startDate = new Date(year, month, 1 - startDay);
-
     for (let i = 0; i < 42; i++) {
-        const date = new Date(startDate);
-        date.setDate(startDate.getDate() + i);
-
-        const key = formatCalendarDate(date);
-        const todayKey = formatCalendarDate(new Date());
-        const selectedKey = formatCalendarDate(selectedCalendarDate);
-        const holidays = getHolidayDates(date.getFullYear());
-
+        const d = new Date(start); d.setDate(start.getDate() + i);
+        const k = dateKey(d), hol = holidays(d.getFullYear())[k];
         const day = document.createElement("div");
-        day.className = "calendar-day";
-        day.textContent = date.getDate();
-
-        if (date.getMonth() !== month) {
-            day.classList.add("other-month");
-        }
-
-        if (key === todayKey) {
-            day.classList.add("today");
-        }
-
-        if (key === selectedKey) {
-            day.classList.add("selected");
-        }
-
-        if (holidays[key]) {
-            const dot = document.createElement("span");
-            dot.className = "holiday-dot";
-            day.appendChild(dot);
-            day.title = holidays[key].name;
-        }
-
-        day.addEventListener("click", () => {
-            selectedCalendarDate = new Date(date);
-
-            if (date.getMonth() !== calendarDate.getMonth()) {
-                calendarDate = new Date(date.getFullYear(), date.getMonth(), 1);
-            }
-
+        day.className = "calendar-day" + (d.getMonth() !== m ? " other-month" : "") + (k === today ? " today" : "") + (k === sel ? " selected" : "");
+        day.textContent = d.getDate();
+        if (hol) { day.insertAdjacentHTML("beforeend", '<span class="holiday-dot"></span>'); day.title = hol; }
+        day.onclick = () => {
+            selectedDate = new Date(d);
+            if (d.getMonth() !== m) calendarDate = new Date(d.getFullYear(), d.getMonth(), 1);
             renderCalendar();
-            renderCalendarEvents();
-        });
-
+        };
         grid.appendChild(day);
     }
-
-    renderCalendarEvents();
+    const name = holidays(selectedDate.getFullYear())[dateKey(selectedDate)];
+    $("calendarEventList").innerHTML = name
+        ? `<div class="calendar-event"><div class="event-marker"></div><div><div class="event-name">${name}</div><div class="event-description">Federal holiday</div></div></div>`
+        : '<div class="no-events">No holidays or events for this day.</div>';
 }
 
-function renderCalendarEvents() {
-    const list = document.getElementById("calendarEventList");
-    const events = getEventsForDate(selectedCalendarDate);
-
-    list.innerHTML = "";
-
-    if (events.length === 0) {
-        list.innerHTML = '<div class="no-events">No holidays or events for this day.</div>';
-        return;
-    }
-
-    events.forEach(event => {
-        const item = document.createElement("div");
-        item.className = "calendar-event";
-
-        const marker = document.createElement("div");
-        marker.className = "event-marker";
-
-        const content = document.createElement("div");
-
-        const name = document.createElement("div");
-        name.className = "event-name";
-        name.textContent = event.name;
-
-        const description = document.createElement("div");
-        description.className = "event-description";
-        description.textContent = event.description;
-
-        content.append(name, description);
-        item.append(marker, content);
-        list.appendChild(item);
-    });
-}
-
-function changeCalendarMonth(amount) {
-    calendarDate = new Date(
-        calendarDate.getFullYear(),
-        calendarDate.getMonth() + amount,
-        1
-    );
-
-    selectedCalendarDate = new Date(calendarDate);
-    renderCalendar();
-}
-
+const panel = $("calendarPanel"), clock = $("taskbarClock");
 function toggleCalendar() {
-    const panel = document.getElementById("calendarPanel");
-    const clock = document.getElementById("taskbarClock");
-
-    panel.classList.toggle("open");
-    clock.classList.toggle("selected", panel.classList.contains("open"));
-
-    if (panel.classList.contains("open")) {
-        calendarDate = new Date();
-        selectedCalendarDate = new Date();
-        updateClock();
-        renderCalendar();
-    }
+    const open = panel.classList.toggle("open");
+    clock.classList.toggle("selected", open);
+    if (open) { calendarDate = new Date(); selectedDate = new Date(); updateClock(); renderCalendar(); }
 }
-
-document.addEventListener("click", event => {
-    const panel = document.getElementById("calendarPanel");
-    const clock = document.getElementById("taskbarClock");
-
-    if (
-        panel.classList.contains("open") &&
-        !panel.contains(event.target) &&
-        !clock.contains(event.target)
-    ) {
-        panel.classList.remove("open");
-        clock.classList.remove("selected");
+clock.onclick = $("calendarClose").onclick = toggleCalendar;
+document.querySelectorAll("[data-month]").forEach(b => b.onclick = () => {
+    calendarDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + +b.dataset.month, 1);
+    selectedDate = new Date(calendarDate);
+    renderCalendar();
+});
+document.addEventListener("click", e => {
+    if (panel.classList.contains("open") && !panel.contains(e.target) && !clock.contains(e.target)) {
+        panel.classList.remove("open"); clock.classList.remove("selected");
     }
 });
-
 renderCalendar();
 
 /* WEATHER */
+const WX = [
+    [[0], "Clear sky", "☀"], [[1], "Mostly clear", "🌤"], [[2], "Partly cloudy", "⛅"], [[3], "Overcast", "☁"],
+    [[45,48], "Foggy", "🌫"], [[51,53,55,56,57], "Drizzle", "🌦"], [[61,63,65,66,67], "Rain", "🌧"],
+    [[71,73,75,77], "Snow", "❄"], [[80,81,82], "Rain showers", "🌧"], [[85,86], "Snow showers", "🌨"], [[95,96,99], "Thunderstorm", "⛈"]
+];
+const setWeatherText = t => $("weatherDescription").textContent = t;
 
-const savedWeather = JSON.parse(
-    localStorage.getItem("desktopWeatherLocation") || "null"
-);
-
-let weatherCoordinates = savedWeather || null;
-
-function weatherCodeInfo(code) {
-    if (code === 0) return ["Clear sky", "☀"];
-    if (code === 1) return ["Mostly clear", "🌤"];
-    if (code === 2) return ["Partly cloudy", "⛅"];
-    if (code === 3) return ["Overcast", "☁"];
-    if ([45, 48].includes(code)) return ["Foggy", "🌫"];
-    if ([51, 53, 55, 56, 57].includes(code)) return ["Drizzle", "🌦"];
-    if ([61, 63, 65, 66, 67].includes(code)) return ["Rain", "🌧"];
-    if ([71, 73, 75, 77].includes(code)) return ["Snow", "❄"];
-    if ([80, 81, 82].includes(code)) return ["Rain showers", "🌧"];
-    if ([85, 86].includes(code)) return ["Snow showers", "🌨"];
-    if ([95, 96, 99].includes(code)) return ["Thunderstorm", "⛈"];
-    return ["Unknown conditions", "☁"];
-}
-
-async function loadWeather(latitude, longitude, locationName) {
-    const description = document.getElementById("weatherDescription");
-    description.textContent = "Loading weather...";
-
+async function loadWeather(lat, lon, name) {
+    setWeatherText("Loading weather...");
     try {
-        const url =
-            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}` +
-            `&longitude=${longitude}` +
-            `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m` +
-            `&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`;
-
-        const response = await fetch(url);
-
-        if (!response.ok) throw new Error("Weather request failed");
-
-        const data = await response.json();
-        const current = data.current;
-
-        const info = weatherCodeInfo(current.weather_code);
-
-        document.getElementById("weatherTemperature").textContent =
-            Math.round(current.temperature_2m) + "°";
-
-        document.getElementById("weatherFeels").textContent =
-            Math.round(current.apparent_temperature) + "°";
-
-        document.getElementById("weatherWind").textContent =
-            Math.round(current.wind_speed_10m) + " mph";
-
-        document.getElementById("weatherHumidity").textContent =
-            current.relative_humidity_2m + "%";
-
-        document.getElementById("weatherDescription").textContent = info[0];
-        document.getElementById("weatherIcon").textContent = info[1];
-        document.getElementById("weatherLocation").textContent = locationName;
-
-        weatherCoordinates = {
-            latitude,
-            longitude,
-            name: locationName
-        };
-
-        localStorage.setItem(
-            "desktopWeatherLocation",
-            JSON.stringify(weatherCoordinates)
-        );
-    } catch (error) {
-        description.textContent = "Could not load weather";
-    }
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`);
+        if (!res.ok) throw 0;
+        const c = (await res.json()).current;
+        const [, desc, icon] = WX.find(w => w[0].includes(c.weather_code)) || [0, "Unknown conditions", "☁"];
+        $("weatherTemperature").textContent = Math.round(c.temperature_2m) + "°";
+        $("weatherFeels").textContent = Math.round(c.apparent_temperature) + "°";
+        $("weatherWind").textContent = Math.round(c.wind_speed_10m) + " mph";
+        $("weatherHumidity").textContent = c.relative_humidity_2m + "%";
+        $("weatherIcon").textContent = icon;
+        $("weatherLocation").textContent = name;
+        setWeatherText(desc);
+        put("desktopWeatherLocation", {latitude: lat, longitude: lon, name});
+    } catch { setWeatherText("Could not load weather"); }
 }
 
 async function searchWeather() {
-    const input = document.getElementById("weatherCityInput");
-    const city = input.value.trim();
-
+    const city = $("weatherCityInput").value.trim();
     if (!city) return;
-
-    document.getElementById("weatherDescription").textContent = "Searching...";
-
+    setWeatherText("Searching...");
     try {
-        const url =
-            `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}` +
-            "&count=1&language=en&format=json";
-
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (!data.results || data.results.length === 0) {
-            document.getElementById("weatherDescription").textContent =
-                "Location not found";
-            return;
-        }
-
-        const place = data.results[0];
-
-        const name = [place.name, place.admin1, place.country]
-            .filter(Boolean)
-            .join(", ");
-
-        await loadWeather(place.latitude, place.longitude, name);
-    } catch (error) {
-        document.getElementById("weatherDescription").textContent =
-            "Search failed";
-    }
+        const data = await (await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`)).json();
+        const p = data.results?.[0];
+        if (!p) return setWeatherText("Location not found");
+        await loadWeather(p.latitude, p.longitude, [p.name, p.admin1, p.country].filter(Boolean).join(", "));
+    } catch { setWeatherText("Search failed"); }
 }
 
-function useMyLocation() {
-    if (!navigator.geolocation) {
-        document.getElementById("weatherDescription").textContent =
-            "Location is not supported";
-        return;
-    }
-
-    document.getElementById("weatherDescription").textContent =
-        "Getting your location...";
-
+$("weatherGo").onclick = searchWeather;
+$("weatherCityInput").addEventListener("keydown", e => e.key === "Enter" && searchWeather());
+$("weatherLocate").onclick = () => {
+    if (!navigator.geolocation) return setWeatherText("Location is not supported");
+    setWeatherText("Getting your location...");
     navigator.geolocation.getCurrentPosition(
-        position => {
-            loadWeather(
-                position.coords.latitude,
-                position.coords.longitude,
-                "Your location"
-            );
-        },
-        () => {
-            document.getElementById("weatherDescription").textContent =
-                "Location permission denied";
-        }
-    );
-}
-
-document.getElementById("weatherCityInput").addEventListener("keydown", event => {
-    if (event.key === "Enter") searchWeather();
-});
-
-if (weatherCoordinates && weatherCoordinates.latitude != null) {
-    loadWeather(
-        weatherCoordinates.latitude,
-        weatherCoordinates.longitude,
-        weatherCoordinates.name || "Saved location"
-    );
-}
+        p => loadWeather(p.coords.latitude, p.coords.longitude, "Your location"),
+        () => setWeatherText("Location permission denied"));
+};
+const savedWeather = store("desktopWeatherLocation", null);
+if (savedWeather?.latitude != null) loadWeather(savedWeather.latitude, savedWeather.longitude, savedWeather.name || "Saved location");
 
 /* WALLPAPER */
-
-function isVideo(filename) {
-    return /\.(mp4|webm|ogg)$/i.test(filename);
-}
-
-function wallpaperPath(filename) {
-    return "Wallpaper/" + encodeURIComponent(filename);
-}
+const wallpaperEl = $("wallpaper");
+const isVideo = f => /\.(mp4|webm|ogg)$/i.test(f);
+const wallpaperPath = f => "Wallpaper/" + encodeURIComponent(f);
+const displayName = f => f.replace(/\.[^/.]+$/, "").replace(/_/g, " ");
 
 function applyColor() {
-    wallpaperElement.innerHTML = "";
-    wallpaperElement.style.backgroundImage = "none";
-    wallpaperElement.style.backgroundColor = currentColor;
-
-    document.getElementById("backgroundColor").value = currentColor;
+    wallpaperEl.innerHTML = "";
+    wallpaperEl.style.backgroundImage = "none";
+    wallpaperEl.style.backgroundColor = currentColor;
+    $("backgroundColor").value = currentColor;
 }
 
-function applyWallpaper(filename) {
-    currentWallpaper = filename;
-    localStorage.setItem("desktopWallpaper", filename);
-
-    if (filename === "__solid__") {
-        applyColor();
-        return;
-    }
-
-    wallpaperElement.innerHTML = "";
-    wallpaperElement.style.backgroundColor = "#111";
-
-    if (isVideo(filename)) {
-        const video = document.createElement("video");
-
-        video.src = wallpaperPath(filename);
-        video.autoplay = true;
-        video.muted = true;
-        video.loop = true;
-        video.playsInline = true;
-        video.preload = "auto";
-
-        wallpaperElement.appendChild(video);
-        video.play().catch(() => {});
-    } else {
-        wallpaperElement.style.backgroundImage =
-            `url("${wallpaperPath(filename)}")`;
-    }
+function applyWallpaper(f) {
+    currentWallpaper = f;
+    localStorage.setItem("desktopWallpaper", f);
+    if (f === "__solid__") return applyColor();
+    wallpaperEl.innerHTML = "";
+    wallpaperEl.style.backgroundColor = "#111";
+    if (isVideo(f)) {
+        const v = Object.assign(document.createElement("video"), {src: wallpaperPath(f), autoplay: true, muted: true, loop: true, playsInline: true, preload: "auto"});
+        wallpaperEl.appendChild(v);
+        v.play().catch(() => {});
+    } else wallpaperEl.style.backgroundImage = `url("${wallpaperPath(f)}")`;
 }
 
-function useSolidColor() {
-    currentWallpaper = "__solid__";
-    localStorage.setItem("desktopWallpaper", "__solid__");
+const applyBlur = () => {
+    $("wallpaperBlur").style.backdropFilter = `blur(${currentBlur}px)`;
+    $("blurSlider").value = currentBlur;
+};
 
-    wallpaperElement.innerHTML = "";
-    wallpaperElement.style.backgroundImage = "none";
-    wallpaperElement.style.backgroundColor = currentColor;
-}
-
-function applyBlur() {
-    blurElement.style.backdropFilter = `blur(${currentBlur}px)`;
-    document.getElementById("blurSlider").value = currentBlur;
-}
-
-document.getElementById("backgroundColor").addEventListener("input", event => {
-    currentColor = event.target.value;
+$("backgroundColor").oninput = e => {
+    currentColor = e.target.value;
     localStorage.setItem("desktopColor", currentColor);
-    useSolidColor();
-});
-
-document.getElementById("blurSlider").addEventListener("input", event => {
-    currentBlur = event.target.value;
-    localStorage.setItem("desktopBlur", currentBlur);
-    applyBlur();
-});
-
-const snapAppsToggle = document.getElementById("snapAppsToggle");
-snapAppsToggle.checked = snapApps;
-
-snapAppsToggle.addEventListener("change", event => {
-    snapApps = event.target.checked;
+    applyWallpaper("__solid__");
+};
+$("blurSlider").oninput = e => { currentBlur = e.target.value; localStorage.setItem("desktopBlur", currentBlur); applyBlur(); };
+$("snapAppsToggle").checked = snapApps;
+$("snapAppsToggle").onchange = e => {
+    snapApps = e.target.checked;
     localStorage.setItem("snapDesktopApps", String(snapApps));
+    if (snapApps) document.querySelectorAll(".desktop-icon").forEach(i => { snapIcon(i); saveIcon(i); });
+};
 
-    if (snapApps) applySnapToDesktopIcons();
-});
-
-/* VIDEO PREVIEWS */
-
-function createPreview(filename) {
-    const preview = document.createElement("div");
-    preview.className = "preview";
-
-    if (isVideo(filename)) {
-        const video = document.createElement("video");
-
-        video.muted = true;
-        video.loop = true;
-        video.playsInline = true;
-        video.autoplay = false;
-        video.preload = "auto";
-        video.src = wallpaperPath(filename);
-
-        video.load();
-
-        video.addEventListener("loadeddata", () => {
-            video.pause();
-            video.currentTime = 0;
-        }, { once: true });
-
-        let hoverTimer;
-
-        preview.addEventListener("mouseenter", () => {
-            hoverTimer = setTimeout(() => {
-                video.play().catch(() => {});
-            }, 500);
-        });
-
-        preview.addEventListener("mouseleave", () => {
-            clearTimeout(hoverTimer);
-            video.pause();
-
-            try {
-                video.currentTime = 0;
-            } catch (error) {}
-        });
-
-        preview.appendChild(video);
-    } else {
-        const image = document.createElement("img");
-        image.src = wallpaperPath(filename);
-        image.alt = filename;
-        preview.appendChild(image);
+function createPreview(f) {
+    const p = document.createElement("div");
+    p.className = "preview";
+    if (!isVideo(f)) {
+        p.innerHTML = `<img src="${wallpaperPath(f)}" alt="${f}">`;
+        return p;
     }
-
-    return preview;
+    const v = Object.assign(document.createElement("video"), {muted: true, loop: true, playsInline: true, preload: "auto", src: wallpaperPath(f)});
+    v.load();
+    v.addEventListener("loadeddata", () => { v.pause(); v.currentTime = 0; }, {once: true});
+    let t;
+    p.onmouseenter = () => t = setTimeout(() => v.play().catch(() => {}), 500);
+    p.onmouseleave = () => { clearTimeout(t); v.pause(); try { v.currentTime = 0; } catch {} };
+    p.appendChild(v);
+    return p;
 }
 
-/* WALLPAPER NAMES */
-
-function displayName(filename) {
-    return filename
-        .replace(/\.[^/.]+$/, "")
-        .replace(/_/g, " ");
+/* CARDS (shared by wallpapers + apps) */
+function makeCard({preview, name, icon, installed, onInstall, label}) {
+    const card = document.createElement("div");
+    card.className = "wallpaper-card";
+    const info = document.createElement("div");
+    info.className = "wallpaper-info";
+    const title = icon
+        ? `<div class="app-heading"><img class="app-icon" src="${icon}" alt=""><div class="wallpaper-name">${name}</div></div>`
+        : `<div class="wallpaper-name">${name}</div>`;
+    info.innerHTML = title;
+    const btn = document.createElement("button");
+    btn.textContent = label || (installed ? "Installed" : "Install");
+    btn.disabled = installed;
+    info.appendChild(btn);
+    if (onInstall) {
+        const prog = document.createElement("div"), fill = document.createElement("div");
+        prog.className = "progress"; fill.className = "progress-fill";
+        prog.appendChild(fill); info.appendChild(prog);
+        btn.onclick = () => {
+            btn.disabled = true; btn.textContent = "Installing..."; prog.style.display = "block";
+            const dur = 200 + Math.random() * 400, t0 = performance.now();
+            const step = now => {
+                const a = Math.min((now - t0) / dur, 1);
+                fill.style.width = a * 100 + "%";
+                a < 1 ? requestAnimationFrame(step) : onInstall();
+            };
+            requestAnimationFrame(step);
+        };
+    }
+    card.append(preview, info);
+    return {card, btn};
 }
-
-/* INSTALLED WALLPAPERS */
 
 function renderInstalled() {
-    const grid = document.getElementById("installedGrid");
+    const grid = $("installedGrid");
     grid.innerHTML = "";
-
-    installedWallpapers.forEach(filename => {
-        const card = document.createElement("div");
-        card.className = "wallpaper-card";
-        card.appendChild(createPreview(filename));
-
-        const info = document.createElement("div");
-        info.className = "wallpaper-info";
-
-        const name = document.createElement("div");
-        name.className = "wallpaper-name";
-        name.textContent = displayName(filename);
-
-        const button = document.createElement("button");
-
-        if (currentWallpaper === filename) {
-            button.textContent = "Currently selected";
-            button.disabled = true;
-        } else {
-            button.textContent = "Use wallpaper";
-
-            button.onclick = () => {
-                applyWallpaper(filename);
-                renderInstalled();
-            };
-        }
-
-        info.append(name, button);
-        card.appendChild(info);
-        grid.appendChild(card);
-    });
-}
-
-/* DESKTOP ICONS */
-
-function snapIconPosition(left, top, icon) {
-    const stepX = 110;
-    const stepY = 105;
-
-    const maxLeft = Math.max(0, window.innerWidth - icon.offsetWidth);
-    const maxTop = Math.max(0, window.innerHeight - 48 - icon.offsetHeight);
-
-    return {
-        left: Math.max(0, Math.min(maxLeft, 20 + Math.round((left - 20) / stepX) * stepX)),
-        top: Math.max(0, Math.min(maxTop, 20 + Math.round((top - 20) / stepY) * stepY))
-    };
-}
-
-function saveDesktopIconPosition(id, icon) {
-    desktopIconPositions[id] = {
-        left: parseFloat(icon.style.left) || 20,
-        top: parseFloat(icon.style.top) || 20
-    };
-
-    localStorage.setItem(
-        "desktopIconPositions",
-        JSON.stringify(desktopIconPositions)
-    );
-}
-
-function applySnapToDesktopIcons() {
-    document.querySelectorAll(
-        ".desktop-icon[data-desktop-id], #desktopApps .desktop-icon"
-    ).forEach(icon => {
-        const id = icon.dataset.desktopId || icon.dataset.appId;
-        if (!id) return;
-
-        const position = snapIconPosition(
-            parseFloat(icon.style.left) || 20,
-            parseFloat(icon.style.top) || 20,
-            icon
-        );
-
-        icon.style.left = position.left + "px";
-        icon.style.top = position.top + "px";
-
-        saveDesktopIconPosition(id, icon);
-    });
-}
-
-function makeDesktopIconDraggable(icon, id, defaultLeft, defaultTop, onOpen) {
-    icon.dataset.desktopId = id;
-
-    const saved = desktopIconPositions[id];
-
-    let initialLeft = saved && Number.isFinite(saved.left)
-        ? saved.left
-        : defaultLeft;
-
-    let initialTop = saved && Number.isFinite(saved.top)
-        ? saved.top
-        : defaultTop;
-
-    if (snapApps) {
-        const snapped = snapIconPosition(initialLeft, initialTop, icon);
-        initialLeft = snapped.left;
-        initialTop = snapped.top;
-    }
-
-    icon.style.left = initialLeft + "px";
-    icon.style.top = initialTop + "px";
-
-    let startX = 0;
-    let startY = 0;
-    let startLeft = 0;
-    let startTop = 0;
-    let moved = false;
-
-    icon.addEventListener("pointerdown", event => {
-        if (event.button !== 0) return;
-
-        startX = event.clientX;
-        startY = event.clientY;
-        startLeft = parseFloat(icon.style.left) || 0;
-        startTop = parseFloat(icon.style.top) || 0;
-        moved = false;
-
-        icon.setPointerCapture(event.pointerId);
-    });
-
-    icon.addEventListener("pointermove", event => {
-        if (!icon.hasPointerCapture(event.pointerId)) return;
-
-        const dx = event.clientX - startX;
-        const dy = event.clientY - startY;
-
-        if (!moved && Math.hypot(dx, dy) > 5) {
-            moved = true;
-            icon.classList.add("dragging");
-        }
-
-        if (!moved) return;
-
-        const maxLeft = Math.max(0, window.innerWidth - icon.offsetWidth);
-        const maxTop = Math.max(0, window.innerHeight - 48 - icon.offsetHeight);
-
-        icon.style.left = Math.max(0, Math.min(maxLeft, startLeft + dx)) + "px";
-        icon.style.top = Math.max(0, Math.min(maxTop, startTop + dy)) + "px";
-    });
-
-    icon.addEventListener("pointerup", event => {
-        if (icon.hasPointerCapture(event.pointerId)) {
-            icon.releasePointerCapture(event.pointerId);
-        }
-
-        icon.classList.remove("dragging");
-
-        if (moved) {
-            if (snapApps) {
-                const snapped = snapIconPosition(
-                    parseFloat(icon.style.left) || 0,
-                    parseFloat(icon.style.top) || 0,
-                    icon
-                );
-
-                icon.style.left = snapped.left + "px";
-                icon.style.top = snapped.top + "px";
-            }
-
-            saveDesktopIconPosition(id, icon);
-            icon.dataset.justDragged = "true";
-
-            setTimeout(() => {
-                icon.dataset.justDragged = "false";
-            }, 0);
-        }
-    });
-
-    icon.addEventListener("click", event => {
-        if (icon.dataset.justDragged === "true") {
-            event.preventDefault();
-            return;
-        }
-
-        if (onOpen) onOpen();
-    });
-}
-
-function renderDesktopApps() {
-    const container = document.getElementById("desktopApps");
-    container.innerHTML = "";
-
-    availableApps.forEach((app, index) => {
-        if (!installedApps.includes(app.id)) return;
-
-        const icon = document.createElement("div");
-        icon.className = "desktop-icon";
-        icon.dataset.appId = app.id;
-        icon.title = "Click to open " + app.name;
-
-        const image = document.createElement("img");
-        image.src = app.icon;
-        image.alt = app.name;
-
-        const label = document.createElement("span");
-        label.textContent = app.name;
-
-        icon.append(image, label);
-        container.appendChild(icon);
-
-        makeDesktopIconDraggable(
-            icon,
-            app.id,
-            20,
-            125 + index * 100,
-            () => openWindow(app.windowId)
-        );
-    });
-}
-
-/* APP STORE */
-
-function renderApps() {
-    const grid = document.getElementById("appsGrid");
-    grid.innerHTML = "";
-
-    availableApps.forEach(app => {
-        const installed = installedApps.includes(app.id);
-
-        const card = document.createElement("div");
-        card.className = "wallpaper-card";
-
-        const preview = document.createElement("div");
-        preview.className = "app-preview";
-
-        const previewImage = document.createElement("img");
-        previewImage.src = app.preview;
-        previewImage.alt = app.name + " preview";
-        previewImage.loading = "lazy";
-
-        preview.appendChild(previewImage);
-
-        const info = document.createElement("div");
-        info.className = "wallpaper-info";
-
-        const heading = document.createElement("div");
-        heading.className = "app-heading";
-
-        const appIcon = document.createElement("img");
-        appIcon.className = "app-icon";
-        appIcon.src = app.icon;
-        appIcon.alt = "";
-
-        const name = document.createElement("div");
-        name.className = "wallpaper-name";
-        name.textContent = app.name;
-
-        heading.append(appIcon, name);
-
-        const button = document.createElement("button");
-        button.textContent = installed ? "Installed" : "Install";
-        button.disabled = installed;
-
-        const progress = document.createElement("div");
-        progress.className = "progress";
-
-        const fill = document.createElement("div");
-        fill.className = "progress-fill";
-        progress.appendChild(fill);
-
-        button.onclick = () => {
-            if (installedApps.includes(app.id)) return;
-
-            button.disabled = true;
-            button.textContent = "Installing...";
-            progress.style.display = "block";
-
-            const duration = 200 + Math.random() * 400;
-            const start = performance.now();
-
-            function animate(now) {
-                const amount = Math.min((now - start) / duration, 1);
-                fill.style.width = (amount * 100) + "%";
-
-                if (amount < 1) {
-                    requestAnimationFrame(animate);
-                } else {
-                    installedApps.push(app.id);
-
-                    localStorage.setItem(
-                        "installedApps",
-                        JSON.stringify(installedApps)
-                    );
-
-                    renderApps();
-                    renderDesktopApps();
-                }
-            }
-
-            requestAnimationFrame(animate);
-        };
-
-        info.append(heading, button, progress);
-        card.append(preview, info);
+    installedWallpapers.forEach(f => {
+        const current = currentWallpaper === f;
+        const {card, btn} = makeCard({preview: createPreview(f), name: displayName(f), installed: current, label: current ? "Currently selected" : "Use wallpaper"});
+        if (!current) btn.onclick = () => { applyWallpaper(f); renderInstalled(); };
         grid.appendChild(card);
     });
 }
 
 function renderStore() {
-    const grid = document.getElementById("storeGrid");
+    const grid = $("storeGrid");
     grid.innerHTML = "";
-
-    wallpaperFiles.forEach(filename => {
-        if (filename === defaultWallpaper) return;
-
-        const installed = installedWallpapers.includes(filename);
-
-        const card = document.createElement("div");
-        card.className = "wallpaper-card";
-        card.appendChild(createPreview(filename));
-
-        const info = document.createElement("div");
-        info.className = "wallpaper-info";
-
-        const name = document.createElement("div");
-        name.className = "wallpaper-name";
-        name.textContent = displayName(filename);
-
-        const button = document.createElement("button");
-        button.textContent = installed ? "Installed" : "Install";
-        button.disabled = installed;
-
-        const progress = document.createElement("div");
-        progress.className = "progress";
-
-        const fill = document.createElement("div");
-        fill.className = "progress-fill";
-        progress.appendChild(fill);
-
-        button.onclick = () => {
-            if (installedWallpapers.includes(filename)) return;
-
-            button.disabled = true;
-            button.textContent = "Installing...";
-            progress.style.display = "block";
-
-            const duration = 200 + Math.random() * 400;
-            const start = performance.now();
-
-            function animateProgress(now) {
-                const amount = Math.min((now - start) / duration, 1);
-                fill.style.width = (amount * 100) + "%";
-
-                if (amount < 1) {
-                    requestAnimationFrame(animateProgress);
-                } else {
-                    installedWallpapers.push(filename);
-
-                    localStorage.setItem(
-                        "installedWallpapers",
-                        JSON.stringify(installedWallpapers)
-                    );
-
-                    renderStore();
-                    renderInstalled();
-                }
-            }
-
-            requestAnimationFrame(animateProgress);
-        };
-
-        info.append(name, button, progress);
-        card.appendChild(info);
-        grid.appendChild(card);
-    });
+    wallpaperFiles.filter(f => f !== defaultWallpaper).forEach(f =>
+        grid.appendChild(makeCard({
+            preview: createPreview(f), name: displayName(f), installed: installedWallpapers.includes(f),
+            onInstall: () => { installedWallpapers.push(f); put("installedWallpapers", installedWallpapers); renderStore(); renderInstalled(); }
+        }).card));
 }
 
-/* LOAD WALLPAPERS */
+function renderApps() {
+    const grid = $("appsGrid");
+    grid.innerHTML = "";
+    availableApps.forEach(app => {
+        const preview = document.createElement("div");
+        preview.className = "preview app";
+        preview.innerHTML = `<img src="${app.preview}" alt="${app.name} preview" loading="lazy">`;
+        grid.appendChild(makeCard({
+            preview, name: app.name, icon: app.icon, installed: installedApps.includes(app.id),
+            onInstall: () => { installedApps.push(app.id); put("installedApps", installedApps); renderApps(); renderDesktopApps(); }
+        }).card);
+    });
+}
 
 async function loadWallpapers() {
     try {
-        const response = await fetch("wallpapers.json?v=" + Date.now(), {
-            cache: "no-store"
-        });
-
-        if (!response.ok) throw new Error("Could not load wallpapers.json");
-
-        const files = await response.json();
-
-        if (!Array.isArray(files)) {
-            throw new Error("wallpapers.json must contain an array");
-        }
-
-        wallpaperFiles = [...new Set(files)].filter(filename =>
-            typeof filename === "string" &&
-            /\.(jpg|jpeg|png|webp|mp4|webm|ogg)$/i.test(filename)
-        );
-
+        const res = await fetch("wallpapers.json?v=" + Date.now(), {cache: "no-store"});
+        if (!res.ok) throw 0;
+        const files = await res.json();
+        if (!Array.isArray(files)) throw 0;
+        wallpaperFiles = [...new Set(files)].filter(f => typeof f === "string" && /\.(jpg|jpeg|png|webp|mp4|webm|ogg)$/i.test(f));
         renderStore();
         renderInstalled();
-    } catch (error) {
-        console.error("Wallpaper loading failed:", error);
-
-        document.getElementById("storeGrid").innerHTML =
-            '<div class="empty-state">Could not load wallpapers.json.</div>';
+    } catch {
+        $("storeGrid").innerHTML = '<div class="empty-state">Could not load wallpapers.json.</div>';
     }
 }
-
-/* STORE TABS */
 
 function showStoreTab(tab) {
     const apps = tab === "apps";
+    $("appsPage").style.display = apps ? "block" : "none";
+    $("wallpapersPage").style.display = apps ? "none" : "block";
+    $("appsTab").classList.toggle("selected", apps);
+    $("wallpapersTab").classList.toggle("selected", !apps);
+    apps ? renderApps() : renderStore();
+}
+$("appsTab").onclick = () => showStoreTab("apps");
+$("wallpapersTab").onclick = () => showStoreTab("wallpapers");
 
-    document.getElementById("appsPage").style.display = apps ? "block" : "none";
-    document.getElementById("wallpapersPage").style.display = apps ? "none" : "block";
-
-    document.getElementById("appsTab").classList.toggle("selected", apps);
-    document.getElementById("wallpapersTab").classList.toggle("selected", !apps);
-
-    if (apps) renderApps();
-    else renderStore();
+/* DESKTOP ICONS */
+function snapIcon(icon) {
+    const l = parseFloat(icon.style.left) || 20, t = parseFloat(icon.style.top) || 20;
+    icon.style.left = Math.max(0, Math.min(Math.max(0, innerWidth - icon.offsetWidth), 20 + Math.round((l - 20) / 110) * 110)) + "px";
+    icon.style.top = Math.max(0, Math.min(Math.max(0, innerHeight - 48 - icon.offsetHeight), 20 + Math.round((t - 20) / 105) * 105)) + "px";
 }
 
-/* WINDOWS */
-
-let windowOpenCount = 0;
-
-function openWindow(id) {
-    const win = document.getElementById(id);
-    if (!win) return;
-
-    const wasOpen = win.classList.contains("active");
-    win.classList.add("active");
-
-    if (!wasOpen && !win.classList.contains("maximized")) {
-        const offset = (windowOpenCount % 7) * 28;
-        const rect = win.getBoundingClientRect();
-
-        const width = rect.width || Math.min(760, window.innerWidth - 30);
-        const height = rect.height || Math.min(520, window.innerHeight - 75);
-
-        win.style.transform = "none";
-
-        win.style.left = Math.max(
-            10,
-            Math.min(
-                (window.innerWidth - width) / 2 + offset,
-                window.innerWidth - width - 10
-            )
-        ) + "px";
-
-        win.style.top = Math.max(
-            10,
-            Math.min(
-                (window.innerHeight - height) / 2 + offset,
-                window.innerHeight - height - 58
-            )
-        ) + "px";
-
-        windowOpenCount++;
-    }
-
-    win.style.zIndex = ++highestWindow;
+function saveIcon(icon) {
+    iconPositions[icon.dataset.desktopId] = {left: parseFloat(icon.style.left) || 20, top: parseFloat(icon.style.top) || 20};
+    put("desktopIconPositions", iconPositions);
 }
 
-function closeWindow(id) {
-    document.getElementById(id).classList.remove("active");
-}
+function makeDraggable(icon, id, defLeft, defTop, onOpen) {
+    icon.dataset.desktopId = id;
+    const s = iconPositions[id];
+    icon.style.left = (s && Number.isFinite(s.left) ? s.left : defLeft) + "px";
+    icon.style.top = (s && Number.isFinite(s.top) ? s.top : defTop) + "px";
+    if (snapApps) snapIcon(icon);
 
-function minimizeWindow(id) {
-    document.getElementById(id).classList.remove("active");
-}
-
-function maximizeWindow(id) {
-    const win = document.getElementById(id);
-    win.classList.toggle("maximized");
-    win.style.zIndex = ++highestWindow;
-}
-
-/* WINDOW RESIZING AND DRAGGING */
-
-document.querySelectorAll(".window").forEach(win => {
-    const edges = [
-        "top", "bottom", "left", "right",
-        "top-left", "top-right", "bottom-left", "bottom-right"
-    ];
-
-    edges.forEach(edge => {
-        const handle = document.createElement("div");
-        handle.className = "window-edge " + edge;
-        win.appendChild(handle);
-
-        let resizing = false;
-        let startX = 0;
-        let startY = 0;
-        let startLeft = 0;
-        let startTop = 0;
-        let startWidth = 0;
-        let startHeight = 0;
-
-        handle.addEventListener("pointerdown", event => {
-            if (
-                win.classList.contains("maximized") ||
-                !win.classList.contains("active") ||
-                event.button !== 0
-            ) return;
-
-            event.preventDefault();
-            event.stopPropagation();
-
-            resizing = true;
-
-            const rect = win.getBoundingClientRect();
-
-            startX = event.clientX;
-            startY = event.clientY;
-            startLeft = rect.left;
-            startTop = rect.top;
-            startWidth = rect.width;
-            startHeight = rect.height;
-
-            win.style.transform = "none";
-            win.style.left = startLeft + "px";
-            win.style.top = startTop + "px";
-            win.style.zIndex = ++highestWindow;
-
-            handle.setPointerCapture(event.pointerId);
-        });
-
-        handle.addEventListener("pointermove", event => {
-            if (!resizing) return;
-
-            const dx = event.clientX - startX;
-            const dy = event.clientY - startY;
-
-            const minWidth = 360;
-            const minHeight = 240;
-
-            let left = startLeft;
-            let top = startTop;
-            let right = startLeft + startWidth;
-            let bottom = startTop + startHeight;
-
-            if (edge.includes("left")) left = startLeft + dx;
-            if (edge.includes("right")) right = startLeft + startWidth + dx;
-            if (edge.includes("top")) top = startTop + dy;
-            if (edge.includes("bottom")) bottom = startTop + startHeight + dy;
-
-            left = Math.max(0, Math.min(left, window.innerWidth - minWidth));
-            top = Math.max(0, Math.min(top, window.innerHeight - 48 - minHeight));
-            right = Math.max(left + minWidth, Math.min(right, window.innerWidth));
-            bottom = Math.max(top + minHeight, Math.min(bottom, window.innerHeight - 48));
-
-            win.style.left = left + "px";
-            win.style.top = top + "px";
-            win.style.width = (right - left) + "px";
-            win.style.height = (bottom - top) + "px";
-        });
-
-        const stopResize = () => resizing = false;
-
-        handle.addEventListener("pointerup", stopResize);
-        handle.addEventListener("pointercancel", stopResize);
-        handle.addEventListener("lostpointercapture", stopResize);
+    let sx, sy, sl, st, moved = false;
+    icon.addEventListener("pointerdown", e => {
+        if (e.button !== 0) return;
+        sx = e.clientX; sy = e.clientY; sl = parseFloat(icon.style.left) || 0; st = parseFloat(icon.style.top) || 0; moved = false;
+        icon.setPointerCapture(e.pointerId);
     });
-
-    /* WINDOW DRAGGING */
-
-    const titlebar = win.querySelector(".titlebar");
-
-    let dragging = false;
-    let offsetX = 0;
-    let offsetY = 0;
-
-    titlebar.addEventListener("pointerdown", event => {
-        if (event.target.closest(".window-controls")) return;
-        if (win.classList.contains("maximized")) return;
-        if (event.button !== 0) return;
-
-        dragging = true;
-        win.style.zIndex = ++highestWindow;
-
-        const rect = win.getBoundingClientRect();
-
-        offsetX = event.clientX - rect.left;
-        offsetY = event.clientY - rect.top;
-
-        win.style.transform = "none";
-        win.style.left = rect.left + "px";
-        win.style.top = rect.top + "px";
-
-        titlebar.setPointerCapture(event.pointerId);
+    icon.addEventListener("pointermove", e => {
+        if (!icon.hasPointerCapture(e.pointerId)) return;
+        const dx = e.clientX - sx, dy = e.clientY - sy;
+        if (!moved && Math.hypot(dx, dy) > 5) { moved = true; icon.classList.add("dragging"); }
+        if (!moved) return;
+        icon.style.left = Math.max(0, Math.min(Math.max(0, innerWidth - icon.offsetWidth), sl + dx)) + "px";
+        icon.style.top = Math.max(0, Math.min(Math.max(0, innerHeight - 48 - icon.offsetHeight), st + dy)) + "px";
     });
-
-    titlebar.addEventListener("pointermove", event => {
-        if (!dragging) return;
-
-        let x = event.clientX - offsetX;
-        let y = event.clientY - offsetY;
-
-        x = Math.max(0, Math.min(x, window.innerWidth - win.offsetWidth));
-        y = Math.max(0, Math.min(y, window.innerHeight - 80));
-
-        win.style.left = x + "px";
-        win.style.top = y + "px";
+    icon.addEventListener("pointerup", e => {
+        if (icon.hasPointerCapture(e.pointerId)) icon.releasePointerCapture(e.pointerId);
+        icon.classList.remove("dragging");
+        if (!moved) return;
+        if (snapApps) snapIcon(icon);
+        saveIcon(icon);
+        icon.dataset.justDragged = "true";
+        setTimeout(() => icon.dataset.justDragged = "false", 0);
     });
+    icon.addEventListener("click", e => icon.dataset.justDragged === "true" ? e.preventDefault() : onOpen());
+}
 
-    titlebar.addEventListener("pointerup", () => dragging = false);
-    titlebar.addEventListener("pointercancel", () => dragging = false);
-});
+function renderDesktopApps() {
+    const box = $("desktopApps");
+    box.innerHTML = "";
+    availableApps.forEach((app, i) => {
+        if (!installedApps.includes(app.id)) return;
+        const icon = document.createElement("div");
+        icon.className = "desktop-icon";
+        icon.title = "Click to open " + app.name;
+        icon.innerHTML = `<img src="${app.icon}" alt="${app.name}"><span>${app.name}</span>`;
+        box.appendChild(icon);
+        makeDraggable(icon, app.id, 20, 125 + i * 100, () => openWindow(app.windowId));
+    });
+}
 
-/* INITIALIZE */
-
-const appStoreIcon = document.getElementById("appStoreDesktopIcon");
-
-makeDesktopIconDraggable(
-    appStoreIcon,
-    "app-store",
-    20,
-    20,
-    () => openWindow("storeWindow")
-);
-
-const settingsIcon = document.getElementById("settingsDesktopIcon");
-
-makeDesktopIconDraggable(
-    settingsIcon,
-    "settings",
-    130,
-    20,
-    () => openWindow("settingsWindow")
-);
-
+/* INIT */
+makeDraggable($("appStoreDesktopIcon"), "app-store", 20, 20, () => openWindow("storeWindow"));
+makeDraggable($("settingsDesktopIcon"), "settings", 130, 20, () => openWindow("settingsWindow"));
 renderApps();
 renderDesktopApps();
-
 applyBlur();
-
-if (currentWallpaper === "__solid__") {
-    applyColor();
-} else {
-    if (!installedWallpapers.includes(currentWallpaper)) {
-        currentWallpaper = defaultWallpaper;
-    }
-
-    applyWallpaper(currentWallpaper);
-}
-
+if (currentWallpaper !== "__solid__" && !installedWallpapers.includes(currentWallpaper)) currentWallpaper = defaultWallpaper;
+applyWallpaper(currentWallpaper);
 loadWallpapers();
-</script>
 
+/* ANNOUNCEMENT */
+const ackBtn = $("ackBtn"), announcement = $("announcement");
+ackBtn.onclick = () => {
+    ackBtn.classList.add("done");
+    setTimeout(() => {
+        announcement.classList.add("hide");
+        setTimeout(() => announcement.remove(), 500);
+    }, 1300);
+};
+</script>
 </body>
 </html>

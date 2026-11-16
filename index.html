@@ -259,6 +259,7 @@ const store = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d;
 const put = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 const raw = (k, d) => localStorage.getItem(k) || d;
 const GH = "https://raw.githubusercontent.com/Timmers437283/game-site/main/Resources/AppBase/";
+const BEACON = "https://raw.githubusercontent.com/Timmers437283/beacon/main/Resources/AppBase/";
 
 /* APPS */
 const availableApps = [
@@ -268,7 +269,7 @@ const availableApps = [
     {id:"soundtrap",name:"Soundtrap", icon:GH+"Soundtrap/cover.png",  preview:GH+"Soundtrap/Preview.png", src:"https://www.soundtrap.com/home/"},
     {id:"chatgpt",  name:"ChatGPT",   icon:GH+"ChatGPT/chatgpt.png",  preview:GH+"ChatGPT/Preview.png",   src:"Resources/AppBase/ChatGPT/index.html"},
     {id:"steam",    name:"Steam",     icon:"Resources/AppBase/Steam/Steam.png",   preview:"Resources/AppBase/Steam/Preview.png"},
-    {id:"ngames",   name:"NGames",    icon:"Resources/AppBase/NGames/small.png",  preview:"Resources/AppBase/NGames/Preview.png", src:"Resources/AppBase/NGames/index.html"}
+    {id:"ngames",   name:"NGames",    icon:BEACON+"NGames/small.png", preview:BEACON+"NGames/Preview.png", src:"https://timmers437283.github.io/beacon/Resources/AppBase/NGames/index.html"}
 ];
 availableApps.forEach(a => a.windowId = a.id + "Window");
 
@@ -319,6 +320,10 @@ const openWindow = id => {
     const win = winEl(id);
     if (!win) return;
     const wasOpen = win.classList.contains("active");
+    /* reload any app that was stopped by the close button */
+    win.querySelectorAll("iframe[data-src]").forEach(f => {
+        if (f.getAttribute("src") === "about:blank") f.src = f.dataset.src;
+    });
     win.classList.add("active");
     if (!wasOpen && !win.classList.contains("maximized")) {
         const off = (windowOpenCount++ % 7) * 28;
@@ -338,8 +343,18 @@ document.addEventListener("click", e => {
     e.stopPropagation();
     const win = b.closest(".window");
     if (!win) return;
-    if (b.dataset.act === "max") { win.classList.toggle("maximized"); win.style.zIndex = ++highestWindow; }
-    else win.classList.remove("active");
+    const act = b.dataset.act;
+    if (act === "max") { win.classList.toggle("maximized"); win.style.zIndex = ++highestWindow; }
+    else {
+        win.classList.remove("active");           // min + close both hide
+        if (act === "close") {
+            win.classList.remove("maximized");    // reopen at normal size
+            win.querySelectorAll("iframe").forEach(f => {   // actually stop the app
+                if (!f.dataset.src) f.dataset.src = f.getAttribute("src");
+                f.src = "about:blank";
+            });
+        }
+    }
     updateRunning();
 }, true);
 

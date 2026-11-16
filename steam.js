@@ -23,7 +23,7 @@
         },
         {
             name: "ngames", title: "NGames", background: "#ebebeb", icon: NGAMES_ICON, preview: NGAMES_PREVIEW,
-            page: "ngames.html", windowId: "ngamesWindow", frameId: "ngamesFrame",
+            page: "index.html", windowId: "ngamesWindow", frameId: "ngamesFrame",
             storage: "beacon_ngames_shortcuts", prefix: "ngames-game-", message: "beacon-ngames-shortcut",
             width: 980, height: 620
         }

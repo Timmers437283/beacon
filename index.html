@@ -379,7 +379,7 @@ const openWindow = id => {
 function stopApp(win) {
     win.querySelectorAll("iframe").forEach(f => {
         const s = f.getAttribute("src");
-        if (s && s !== "about:blank") f.dataset.src = s;
+        if (s && s !== "about:blank") f.dataset.src = f.dataset.home || s;
         f.src = "about:blank";
     });
     win.querySelectorAll("video,audio").forEach(m => { try { m.pause(); } catch {} });

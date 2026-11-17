@@ -664,20 +664,65 @@ $("backgroundColor").oninput = e => {
 };
 $("blurSlider").oninput = e => { currentBlur = e.target.value; localStorage.setItem("desktopBlur", currentBlur); applyBlur(); };
 
+/* THUMBNAILS: each video is read once, one still frame is saved, then the video is never loaded again */
+const thumbQueue = []; let thumbBusy = false;
+const getThumb = f => { try { return localStorage.getItem("thumb:" + f); } catch { return null; } };
+
+function runThumbs() {
+    if (thumbBusy || !thumbQueue.length) return;
+    thumbBusy = true;
+    const {f, img} = thumbQueue.shift();
+    const next = () => { thumbBusy = false; setTimeout(runThumbs, 80); };
+    const cached = getThumb(f);
+    if (cached) { img.src = cached; return next(); }
+    const v = document.createElement("video");
+    v.muted = true; v.playsInline = true; v.preload = "metadata"; v.src = wallpaperPath(f);
+    let finished = false;
+    const finish = () => {
+        if (finished) return; finished = true;
+        clearTimeout(timer);
+        v.removeAttribute("src"); v.load();   // free the video right away
+        next();
+    };
+    const timer = setTimeout(finish, 8000);
+    v.addEventListener("error", finish);
+    v.addEventListener("loadedmetadata", () => { v.currentTime = Math.min(1, (v.duration || 1) / 2); });
+    v.addEventListener("seeked", () => {
+        try {
+            const c = document.createElement("canvas");
+            c.width = 320; c.height = 180;
+            c.getContext("2d").drawImage(v, 0, 0, 320, 180);
+            const url = c.toDataURL("image/jpeg", 0.6);
+            img.src = url;
+            try { localStorage.setItem("thumb:" + f, url); } catch {}
+        } catch {}
+        finish();
+    });
+}
+
+const thumbObserver = "IntersectionObserver" in window
+    ? new IntersectionObserver(entries => entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        thumbObserver.unobserve(en.target);
+        thumbQueue.push({f: en.target.dataset.file, img: en.target});
+        runThumbs();
+    }), {rootMargin: "100px"})
+    : null;
+
 function createPreview(f) {
     const p = document.createElement("div");
     p.className = "preview";
+    const img = document.createElement("img");
+    img.alt = displayName(f); img.decoding = "async";
     if (!isVideo(f)) {
-        p.innerHTML = `<img src="${wallpaperPath(f)}" alt="${f}">`;
-        return p;
+        img.loading = "lazy";
+        img.src = wallpaperPath(f);
+    } else {
+        const cached = getThumb(f);
+        if (cached) img.src = cached;
+        else { img.dataset.file = f; thumbObserver ? thumbObserver.observe(img) : (thumbQueue.push({f, img}), runThumbs()); }
     }
-    const v = Object.assign(document.createElement("video"), {muted: true, loop: true, playsInline: true, preload: "auto", src: wallpaperPath(f)});
-    v.load();
-    v.addEventListener("loadeddata", () => { v.pause(); v.currentTime = 0; }, {once: true});
-    let t;
-    p.onmouseenter = () => t = setTimeout(() => v.play().catch(() => {}), 500);
-    p.onmouseleave = () => { clearTimeout(t); v.pause(); try { v.currentTime = 0; } catch {} };
-    p.appendChild(v);
+    p.appendChild(img);
     return p;
 }
 
@@ -724,14 +769,26 @@ function renderInstalled() {
     });
 }
 
+let storeBuilt = false;
 function renderStore() {
+    if (storeBuilt || !wallpaperFiles.length) return;   // build the grid only once
+    storeBuilt = true;
     const grid = $("storeGrid");
     grid.innerHTML = "";
-    wallpaperFiles.filter(f => f !== defaultWallpaper).forEach(f =>
-        grid.appendChild(makeCard({
+    const frag = document.createDocumentFragment();
+    wallpaperFiles.filter(f => f !== defaultWallpaper).forEach(f => {
+        const c = makeCard({
             preview: createPreview(f), name: displayName(f), installed: installedWallpapers.includes(f),
-            onInstall: () => { installedWallpapers.push(f); put("installedWallpapers", installedWallpapers); renderStore(); renderInstalled(); }
-        }).card));
+            onInstall: () => {
+                installedWallpapers.push(f); put("installedWallpapers", installedWallpapers);
+                c.btn.textContent = "Installed"; c.btn.disabled = true;   // update just this card
+                c.card.querySelector(".progress").style.display = "none";
+                renderInstalled();
+            }
+        });
+        frag.appendChild(c.card);
+    });
+    grid.appendChild(frag);
 }
 
 function renderApps() {

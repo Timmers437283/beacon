@@ -64,6 +64,14 @@
   "cover": "../../../NGames/SMW/Cover.png",
   "color": "#0068b3",
   "description": "Super Mario World is a classic 2D platformer where Mario and Luigi travel through Dinosaur Land to rescue Princess Peach from Bowser. Explore colorful worlds, discover secret exits, collect power-ups, ride Yoshi, and take on challenging levels across dozens of unique stages."
+  },
+    {
+  "id": "mk64",
+  "title": "Mario Kart 64: N64",
+  "url": "../../../NGames/MK64/index.html",
+  "cover": "../../../NGames/MK64/Cover.png",
+  "color": "#8b6951",
+  "description": "Mario Kart 64 is a classic kart racing game where Mario and his friends compete across colorful tracks filled with twists, turns, and obstacles. Use iconic power-ups like shells, bananas, and lightning to gain an advantage, race through memorable courses, and battle friends in exciting multiplayer modes."
   }
   ]
 }

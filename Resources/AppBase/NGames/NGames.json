@@ -56,6 +56,14 @@
   "cover": "../../../NGames/LSWCS/Cover.png",
   "color": "#1a3338",
   "description": "Experience the complete LEGO Star Wars adventure, covering all six films from the original and prequel trilogies. Explore iconic locations, battle enemies, solve puzzles, collect characters, and relive the Star Wars saga with classic LEGO humor."
+  },
+    {
+  "id": "smw",
+  "title": "Super Mario World: SNES",
+  "url": "../../../NGames/SMW/index.html",
+  "cover": "../../../NGames/SMW/Cover.png",
+  "color": "#0068b3",
+  "description": "Super Mario World is a classic 2D platformer where Mario and Luigi travel through Dinosaur Land to rescue Princess Peach from Bowser. Explore colorful worlds, discover secret exits, collect power-ups, ride Yoshi, and take on challenging levels across dozens of unique stages."
   }
   ]
 }
